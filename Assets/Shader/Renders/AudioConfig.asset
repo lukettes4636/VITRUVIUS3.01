@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5f72f061b59111449a695f12b280bf7, type: 3}
+  m_Name: AudioConfig
+  m_EditorClassIdentifier: 
+  masterMixerGroup: {fileID: 24300002, guid: 1c4fd34be5288874b81f70e988ce17aa, type: 2}
+  musicMixerGroup: {fileID: 910449634071062325, guid: 1c4fd34be5288874b81f70e988ce17aa, type: 2}
+  sfxMixerGroup: {fileID: 3449381467981265557, guid: 1c4fd34be5288874b81f70e988ce17aa, type: 2}
+  player1Footsteps:
+  - {fileID: 8300000, guid: b993df4a93c1d304ab19d8b2eb88c9a5, type: 3}
+  player2Footsteps:
+  - {fileID: 8300000, guid: 0909de896e9029541b92ae05fe15e4b6, type: 3}
+  pickUpSounds:
+  - {fileID: 8300000, guid: c526c55cd45195049ae424e544db6b00, type: 3}
+  doorOpenSounds:
+  - {fileID: 8300000, guid: db66413f214bb004f999926dc512eee7, type: 3}
+  doorCloseSounds:
+  - {fileID: 8300000, guid: 361ecfab47b544f4fb7f785dc72ace1b, type: 3}
+  doorLockedSounds:
+  - {fileID: 8300000, guid: afc054c4fabcdd9438fc21f8c3f6ea67, type: 3}
+  doorUnlockSounds:
+  - {fileID: 8300000, guid: ab5b12fd351148c4db3b72ead5237152, type: 3}
+  interactionSounds: []
+  puzzleSounds: []
+  flashlightSounds:
+  - {fileID: 8300000, guid: dd491bf5bb3054e4383e6afac58fc6d7, type: 3}
+  explorationMusic:
+  - {fileID: 8300000, guid: 4defb81c1268b1a47b177e0c4ea39349, type: 3}
+  defaultMasterVolume: 1
+  defaultMusicVolume: 1
+  defaultSfxVolume: 1

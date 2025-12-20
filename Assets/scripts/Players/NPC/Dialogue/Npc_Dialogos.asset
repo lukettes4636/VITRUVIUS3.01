@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: Npc_Dialogos
+  m_EditorClassIdentifier: Assembly-CSharp::NPCDialogueData
+  npcName: NPC
+  npcDescription: 
+  player1Dialogues:
+  - characterTag: Player1
+    setName: Dialogo 1
+    conditions: []
+    dialogueNodes:
+    - line: HOLA
+      isNPC: 1
+      options:
+      - optionText: HOLA
+        nextNodeIndex: 1
+      - optionText: 
+        nextNodeIndex: 0
+    - line: kkk
+      isNPC: 1
+      options: []
+    oneTimeOnly: 1
+    markAsCompleted: 0
+    hasBeenShown: 0
+  player2Dialogues:
+  - characterTag: Player2
+    setName: Dialogo 1
+    conditions: []
+    dialogueNodes:
+    - line: CHAU
+      isNPC: 1
+      options:
+      - optionText: HOLA
+        nextNodeIndex: 0
+      - optionText: HOLIS
+        nextNodeIndex: 0
+    oneTimeOnly: 1
+    markAsCompleted: 0
+    hasBeenShown: 0
+  followUpDialogue: []

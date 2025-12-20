@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a70f91b32052932459660f70cc5ee912, type: 3}
+  m_Name: PlayerDialogue_Reacts
+  m_EditorClassIdentifier: 
+  flashlightOtherReact_Player1: Hey, share the light!
+  flashlightOtherReact_Player2: Nice, you got it. I still need one.
+  flashlightBothHave_Player2WasLast_Player1Teasing: Took you long enough, rookie.
+  flashlightBothHave_Player1WasLast_Player2Encouraging: Great, now you're set too!
+  keyCardCollector_Player1: Keycard acquired.
+  keyCardOtherReact_Player2OnP1: Good job, I'll cover you.
+  keyCardCollector_Player2: Keycard secured.
+  keyCardOtherReact_Player1OnP2: Alright, let's move.
+  leverCollector_Player1: Lever picked.
+  leverOtherReact_Player2OnP1: Flip it when ready.
+  leverCollector_Player2: Lever obtained.
+  leverOtherReact_Player1OnP2: We might need that soon.
+  keyCollector_Player1: Key found.
+  keyOtherReact_Player2OnP1: Perfect, that'll open something.
+  keyCollector_Player2: Key collected.
+  keyOtherReact_Player1OnP2: Nice, keep it handy.

@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags:
+  - Draggable
+  - Player1
+  - Player2
+  - Puerta
+  - Walls
+  - Collectable
+  - FallenDoor
+  - Ray
+  - Player_Weapon
+  - OriginalWall
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - Player
+  - Water
+  - UI
+  - Draggable
+  - Item
+  - PostProcessLayer
+  - Ground
+  - ray
+  - obstacle
+  - UI
+  - DestructibleWall
+  - 
+  - Walls
+  - Player1mask
+  - Player2mask
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: GAME
+    uniqueID: 3318905395
+    locked: 0
+  - name: UI
+    uniqueID: 1292886311
+    locked: 0
