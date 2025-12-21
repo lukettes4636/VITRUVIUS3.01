@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
@@ -45,40 +45,38 @@ public class DialogueCondition
     }
 }
 
-
 [System.Serializable]
 public class DialogueOption
 {
     public string optionText;
     public int nextNodeIndex;
 
-    [Tooltip("Escribe aqu el nombre de la Flag que se activar al elegir esta opcin (ej: NPC_Follows_P1)")]
+    [Tooltip("Escribe aqui el nombre de la Flag que se activara al elegir esta opcion (ej: NPC_Follows_P1)")]
     public string flagToTrigger = "";
 }
-
 
 [System.Serializable]
 public class DialogueNode
 {
     public bool isNPC = true;
     [TextArea(3, 10)] public string line;
-    public List<DialogueOption> options; 
+    public List<DialogueOption> options = new List<DialogueOption>();
 }
 
 [System.Serializable]
 public class CharacterDialogueSet
 {
-    [Header("Identificacin")]
+    [Header("Identificacion")]
     public string characterTag = "Player1";
-    public string setName = "Primera Conversacin";
+    public string setName = "Primera Conversacion";
 
     [Header("Condiciones")]
     public List<DialogueCondition> conditions = new List<DialogueCondition>();
 
-    [Header("Dilogo")]
+    [Header("Dialogo")]
     public List<DialogueNode> dialogueNodes = new List<DialogueNode>();
 
-    [Header("Configuracin")]
+    [Header("Configuracion")]
     public bool oneTimeOnly = false;
     public bool markAsCompleted = true;
 
@@ -101,15 +99,15 @@ public class CharacterDialogueSet
 [CreateAssetMenu(fileName = "NewNPCDialogue", menuName = "Dialogue System/NPC Dialogue Data")]
 public class NPCDialogueData : ScriptableObject
 {
-    [Header("Informacin del NPC")]
+    [Header("Informacion del NPC")]
     public string npcName = "NPC";
     public string npcDescription = "";
 
-    [Header("Dilogos por Personaje")]
+    [Header("Dialogos por Personaje")]
     public List<CharacterDialogueSet> player1Dialogues = new List<CharacterDialogueSet>();
     public List<CharacterDialogueSet> player2Dialogues = new List<CharacterDialogueSet>();
 
-    [Header("Dilogo de Seguimiento (Follow-up)")]
+    [Header("Dialogo de Seguimiento (Follow-up)")]
     public List<DialogueNode> followUpDialogue = new List<DialogueNode>();
 
     public CharacterDialogueSet GetDialogueForPlayer(string playerTag, NPCDialogueDataManager dataManager)

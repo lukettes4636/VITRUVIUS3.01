@@ -18,9 +18,114 @@ MonoBehaviour:
   - characterTag: Player1
     setName: Dialogo 1
     conditions: []
-    dialogueNodes: []
-    oneTimeOnly: 0
+    dialogueNodes:
+    - isNPC: 0
+      line: That was harsh!
+      options: []
+    - isNPC: 1
+      line: It seems the creature is BLIND, it only HEARS
+      options: []
+    - isNPC: 0
+      line: You're right.. Don't make any noise!
+      options: []
+    - isNPC: 1
+      line: Can I follow you?
+      options:
+      - optionText: Yes, follow us
+        nextNodeIndex: 4
+        flagToTrigger: NPC_Follows_P1
+      - optionText: No, we're going to continue on our own
+        nextNodeIndex: 5
+        flagToTrigger: 
+    - isNPC: 1
+      line: And please, WATCH MY BACK, i'm heavily wounded
+      options: []
+    - isNPC: 1
+      line: Please... i'm hurt
+      options: []
+    oneTimeOnly: 1
     markAsCompleted: 1
     hasBeenShown: 0
-  player2Dialogues: []
+  - characterTag: Player1
+    setName: DIALOGO DE FOLLOW
+    conditions: []
+    dialogueNodes:
+    - isNPC: 1
+      line: Did you change your mind?
+      options:
+      - optionText: Ok, Let's go
+        nextNodeIndex: 1
+        flagToTrigger: NPC_Follows_P1
+      - optionText: No, we're going to follow our own path
+        nextNodeIndex: 2
+        flagToTrigger: 
+    - isNPC: 1
+      line: And please, WATCH MY BACK, i'm heavily wounded
+      options: []
+    - isNPC: 1
+      line: Please... i'm hurt
+      options:
+      - optionText: ...
+        nextNodeIndex: -1
+        flagToTrigger: 
+    oneTimeOnly: 0
+    markAsCompleted: 0
+    hasBeenShown: 0
+  player2Dialogues:
+  - characterTag: Player2
+    setName: Dialogo 1
+    conditions: []
+    dialogueNodes:
+    - isNPC: 0
+      line: That was close!
+      options: []
+    - isNPC: 1
+      line: It seems the creature is BLIND, it only HEARS
+      options: []
+    - isNPC: 0
+      line: Yes, we must be careful. Don't make any noise!
+      options: []
+    - isNPC: 1
+      line: can I follow you?
+      options:
+      - optionText: Yes, hurry. follow us
+        nextNodeIndex: 4
+        flagToTrigger: NPC_Follows_P2
+      - optionText: No, we're going to follow our own path
+        nextNodeIndex: 5
+        flagToTrigger: 
+    - isNPC: 1
+      line: And please, WATCH MY BACK, i'm heavily wounded
+      options: []
+    - isNPC: 1
+      line: Please... i'm hurt
+      options: []
+    oneTimeOnly: 1
+    markAsCompleted: 1
+    hasBeenShown: 0
+  - characterTag: Player2
+    setName: Dialogo 2
+    conditions: []
+    dialogueNodes:
+    - isNPC: 1
+      line: Did you change your mind?
+      options:
+      - optionText: Yes, follow us
+        nextNodeIndex: 2
+        flagToTrigger: NPC_Follows_P2
+      - optionText: No, we're going to continue on our own
+        nextNodeIndex: 1
+        flagToTrigger: 
+    - isNPC: 1
+      line: Please... i'm hurt
+      options:
+      - optionText: ...
+        nextNodeIndex: -1
+        flagToTrigger: 
+    - isNPC: 1
+      line: And please, WATCH MY BACK, i'm heavily wounded
+      options: []
+    oneTimeOnly: 0
+    markAsCompleted: 0
+    hasBeenShown: 0
   followUpDialogue: []

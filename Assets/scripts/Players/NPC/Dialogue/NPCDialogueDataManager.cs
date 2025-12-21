@@ -1,50 +1,86 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-
-
-
 
 public class NPCDialogueDataManager : MonoBehaviour
 {
-    [Header("Referencias")]
-    [SerializeField] private NPCDialogueData dialogueData;
+    [Header("Configuracin del NPC")]
+    [SerializeField] private NPCDialogueData npcDialogueData;
+
+    private Dictionary<string, int> interactionCounts = new Dictionary<string, int>();
+    private Dictionary<string, HashSet<string>> flags = new Dictionary<string, HashSet<string>>();
 
     
-    private Dictionary<string, int> interactionCount = new Dictionary<string, int>();
+    private CharacterDialogueSet currentDialogueSet;
 
     
-    private Dictionary<string, HashSet<string>> playerFlags = new Dictionary<string, HashSet<string>>();
+    private static NPCDialogueDataManager instance;
+    public static NPCDialogueDataManager Instance
+    {
+        get
+        {
+            if (instance == null)
+            {
+                instance = FindObjectOfType<NPCDialogueDataManager>();
+                if (instance == null)
+                {
+                    GameObject go = new GameObject("DialogueDataManager");
+                    instance = go.AddComponent<NPCDialogueDataManager>();
+                }
+            }
+            return instance;
+        }
+    }
+
+    private void Awake()
+    {
+        
+        if (npcDialogueData == null)
+        {
+
+        }
+    }
+
+    #region Mtodos Pblicos - Usados por NPCEnhancedDialogueSystem
 
     
-    private Dictionary<string, CharacterDialogueSet> currentDialogueSet = new Dictionary<string, CharacterDialogueSet>();
+    
+    
+    public bool HasDialogueAvailable(string playerTag)
+    {
+        if (npcDialogueData == null) return false;
 
-    #region Public API
+        
+        CharacterDialogueSet dialogueSet = npcDialogueData.GetDialogueForPlayer(playerTag, this);
+        if (dialogueSet != null) return true;
+
+        
+        return npcDialogueData.followUpDialogue != null && npcDialogueData.followUpDialogue.Count > 0;
+    }
 
     
     
     
     public List<DialogueNode> GetDialogueForPlayer(string playerTag)
     {
-        if (dialogueData == null)
+        if (npcDialogueData == null) return new List<DialogueNode>();
+
+        
+        currentDialogueSet = npcDialogueData.GetDialogueForPlayer(playerTag, this);
+
+        if (currentDialogueSet != null)
         {
 
-            return new List<DialogueNode>();
+            return currentDialogueSet.dialogueNodes;
         }
 
         
-        CharacterDialogueSet dialogueSet = dialogueData.GetDialogueForPlayer(playerTag, this);
-
-        if (dialogueSet != null)
+        if (npcDialogueData.followUpDialogue != null && npcDialogueData.followUpDialogue.Count > 0)
         {
-            currentDialogueSet[playerTag] = dialogueSet;
-            return dialogueSet.dialogueNodes;
+
+            currentDialogueSet = null; 
+            return npcDialogueData.followUpDialogue;
         }
 
-        
-        if (dialogueData.followUpDialogue != null && dialogueData.followUpDialogue.Count > 0)
-        {
-            return dialogueData.followUpDialogue;
-        }
 
         return new List<DialogueNode>();
     }
@@ -54,152 +90,133 @@ public class NPCDialogueDataManager : MonoBehaviour
     
     public void CompleteCurrentDialogue(string playerTag)
     {
+        if (npcDialogueData == null) return;
+
+        
+        if (currentDialogueSet != null)
+        {
+            npcDialogueData.CompleteDialogue(playerTag, currentDialogueSet);
+
+        }
+
         
         IncrementInteractionCount(playerTag);
 
-        
-        if (currentDialogueSet.ContainsKey(playerTag) && currentDialogueSet[playerTag] != null)
-        {
-            dialogueData.CompleteDialogue(playerTag, currentDialogueSet[playerTag]);
-        }
+
+        currentDialogueSet = null;
     }
 
-    
-    
-    
+    #endregion
+
+    #region Contadores de Interaccin
+
     public int GetInteractionCount(string playerTag)
     {
-        if (!interactionCount.ContainsKey(playerTag))
-            return 0;
-
-        return interactionCount[playerTag];
+        return interactionCounts.ContainsKey(playerTag) ? interactionCounts[playerTag] : 0;
     }
 
-    
-    
-    
-    private void IncrementInteractionCount(string playerTag)
+    public void IncrementInteractionCount(string playerTag)
     {
-        if (!interactionCount.ContainsKey(playerTag))
-            interactionCount[playerTag] = 0;
+        if (!interactionCounts.ContainsKey(playerTag))
+            interactionCounts[playerTag] = 0;
 
-        interactionCount[playerTag]++;
-    }
-
-    
-    
-    
-    public void SetFlag(string playerTag, string flagName)
-    {
-        if (!playerFlags.ContainsKey(playerTag))
-            playerFlags[playerTag] = new HashSet<string>();
-
-        playerFlags[playerTag].Add(flagName);
-    }
-
-    
-    
-    
-    public bool HasFlag(string playerTag, string flagName)
-    {
-        if (!playerFlags.ContainsKey(playerTag))
-            return false;
-
-        return playerFlags[playerTag].Contains(flagName);
-    }
-
-    
-    
-    
-    public void RemoveFlag(string playerTag, string flagName)
-    {
-        if (playerFlags.ContainsKey(playerTag))
-        {
-            playerFlags[playerTag].Remove(flagName);
-        }
-    }
-
-    
-    
-    
-    public void ResetAllProgress()
-    {
-        interactionCount.Clear();
-        playerFlags.Clear();
-        currentDialogueSet.Clear();
-
-        if (dialogueData != null)
-            dialogueData.ResetAllDialogues();
-    }
-
-    
-    
-    
-    public void ResetPlayerProgress(string playerTag)
-    {
-        if (interactionCount.ContainsKey(playerTag))
-            interactionCount.Remove(playerTag);
-
-        if (playerFlags.ContainsKey(playerTag))
-            playerFlags.Remove(playerTag);
-
-        if (currentDialogueSet.ContainsKey(playerTag))
-            currentDialogueSet.Remove(playerTag);
-    }
-
-    
-    
-    
-    public bool HasDialogueAvailable(string playerTag)
-    {
-        if (dialogueData == null)
-            return false;
-
-        CharacterDialogueSet dialogueSet = dialogueData.GetDialogueForPlayer(playerTag, this);
-
-        if (dialogueSet != null)
-            return true;
-
-        
-        return dialogueData.followUpDialogue != null && dialogueData.followUpDialogue.Count > 0;
+        interactionCounts[playerTag]++;
     }
 
     #endregion
 
-    #region Unity Lifecycle
+    #region Gestin de Flags
 
-    private void Awake()
+    public bool HasFlag(string playerTag, string flag)
     {
-        if (dialogueData == null)
-        {
+        if (string.IsNullOrEmpty(flag))
+            return false;
 
-        }
+        if (!flags.ContainsKey(playerTag))
+            return false;
+
+        return flags[playerTag].Contains(flag);
+    }
+
+    public void SetFlag(string playerTag, string flag)
+    {
+        if (string.IsNullOrEmpty(flag))
+            return;
+
+        if (!flags.ContainsKey(playerTag))
+            flags[playerTag] = new HashSet<string>();
+
+        flags[playerTag].Add(flag);
+
     }
 
     #endregion
 
-    #region Editor Helpers
+    #region Reset y Utilidades
 
-    [ContextMenu("Reset All Progress")]
-    private void ResetProgressMenuItem()
+    
+    
+    
+    public void ResetAllData()
     {
-        ResetAllProgress();
+        interactionCounts.Clear();
+        flags.Clear();
+        currentDialogueSet = null;
+
     }
 
-    [ContextMenu("Show Current State")]
-    private void ShowCurrentState()
+    
+    
+    
+    public void SetDialogueData(NPCDialogueData data)
     {
+        npcDialogueData = data;
+    }
 
+    
+    
+    
+    public NPCDialogueData GetDialogueData()
+    {
+        return npcDialogueData;
+    }
 
-        foreach (var kvp in interactionCount)
+    #endregion
+
+    #region Debug
+
+    
+    [Header("Debug Info")]
+    [SerializeField] private bool showDebugInfo = false;
+
+    private void OnGUI()
+    {
+        if (!showDebugInfo) return;
+
+        GUILayout.BeginArea(new Rect(10, 200, 400, 400));
+        GUILayout.Label($"=== {gameObject.name} ===", new GUIStyle() { fontSize = 14, normal = new GUIStyleState() { textColor = Color.yellow } });
+
+        GUILayout.Label($"NPC: {(npcDialogueData != null ? npcDialogueData.npcName : "Sin asignar")}");
+
+        GUILayout.Space(5);
+        GUILayout.Label("Interacciones:");
+        foreach (var kvp in interactionCounts)
         {
-
+            GUILayout.Label($"  {kvp.Key}: {kvp.Value}");
         }
 
-        foreach (var kvp in playerFlags)
+        GUILayout.Space(5);
+        GUILayout.Label("Flags activas:");
+        foreach (var playerFlags in flags)
         {
-
+            GUILayout.Label($"  {playerFlags.Key}:");
+            foreach (var flag in playerFlags.Value)
+            {
+                GUILayout.Label($"    - {flag}");
+            }
         }
+
+        GUILayout.EndArea();
     }
 
     #endregion
