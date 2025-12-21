@@ -204,7 +204,9 @@ void CalculateLogicRadius()
         visualRadius = Mathf.Lerp(visualRadius, currentNoiseRadius, Time.deltaTime * visualLerpSpeed);
 
         
-        noiseVFX.SetFloat(vfxRadiusProperty, visualRadius);
+        
+        if (noiseVFX.HasFloat(vfxRadiusProperty))
+            noiseVFX.SetFloat(vfxRadiusProperty, visualRadius);
 
         
         float targetPulse = idlePulseSpeed;
@@ -215,7 +217,8 @@ void CalculateLogicRadius()
             targetPulse = walkPulseSpeed;
 
         
-        noiseVFX.SetFloat(vfxPulseProperty, targetPulse);
+        if (noiseVFX.HasFloat(vfxPulseProperty))
+            noiseVFX.SetFloat(vfxPulseProperty, targetPulse);
 
         
         noiseVFX.enabled = isRingVisible && (visualRadius > 0.1f);
