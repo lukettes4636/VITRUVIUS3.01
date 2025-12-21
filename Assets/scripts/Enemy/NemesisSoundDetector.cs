@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 
 public class NemesisSoundDetector : MonoBehaviour
@@ -12,9 +12,6 @@ public class NemesisSoundDetector : MonoBehaviour
     public string player1Tag = "Player1";
     public string player2Tag = "Player2";
     public string npcTag = "NPC";
-    
-    [Header("Debug")]
-    public bool showDebugGizmos = true;
     
     
     private Dictionary<Transform, SoundSource> detectedSounds;
@@ -234,23 +231,6 @@ public class NemesisSoundDetector : MonoBehaviour
     public List<Transform> GetAllDetectedSources()
     {
         return new List<Transform>(detectedSounds.Keys);
-    }
-    
-    void OnDrawGizmosSelected()
-    {
-        if (!showDebugGizmos) return;
-        
-        
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(transform.position, maxHearingDistance);
-        
-        
-        foreach (var soundSource in detectedSounds.Values)
-        {
-            Gizmos.color = Color.Lerp(Color.green, Color.red, soundSource.intensity);
-            Gizmos.DrawLine(transform.position, soundSource.position);
-            Gizmos.DrawWireSphere(soundSource.position, 0.5f);
-        }
     }
     
     bool IsPlayerMoving(Transform player)

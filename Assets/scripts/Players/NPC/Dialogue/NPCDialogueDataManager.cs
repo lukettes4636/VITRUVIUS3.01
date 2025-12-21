@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class NPCDialogueDataManager : MonoBehaviour
@@ -179,44 +179,6 @@ public class NPCDialogueDataManager : MonoBehaviour
     public NPCDialogueData GetDialogueData()
     {
         return npcDialogueData;
-    }
-
-    #endregion
-
-    #region Debug
-
-    
-    [Header("Debug Info")]
-    [SerializeField] private bool showDebugInfo = false;
-
-    private void OnGUI()
-    {
-        if (!showDebugInfo) return;
-
-        GUILayout.BeginArea(new Rect(10, 200, 400, 400));
-        GUILayout.Label($"=== {gameObject.name} ===", new GUIStyle() { fontSize = 14, normal = new GUIStyleState() { textColor = Color.yellow } });
-
-        GUILayout.Label($"NPC: {(npcDialogueData != null ? npcDialogueData.npcName : "Sin asignar")}");
-
-        GUILayout.Space(5);
-        GUILayout.Label("Interacciones:");
-        foreach (var kvp in interactionCounts)
-        {
-            GUILayout.Label($"  {kvp.Key}: {kvp.Value}");
-        }
-
-        GUILayout.Space(5);
-        GUILayout.Label("Flags activas:");
-        foreach (var playerFlags in flags)
-        {
-            GUILayout.Label($"  {playerFlags.Key}:");
-            foreach (var flag in playerFlags.Value)
-            {
-                GUILayout.Label($"    - {flag}");
-            }
-        }
-
-        GUILayout.EndArea();
     }
 
     #endregion

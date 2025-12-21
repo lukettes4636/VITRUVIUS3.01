@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -508,11 +508,15 @@ public class EnemyMonsterAI : MonoBehaviour
 
         if (Physics.Raycast(origin, dir, out RaycastHit hit, dist, visionBlockerLayer))
         {
+#if UNITY_EDITOR
             Debug.DrawLine(origin, hit.point, blockedRayColor, Time.deltaTime);
+#endif
             return false;
         }
 
+#if UNITY_EDITOR
         Debug.DrawLine(origin, target, debugRayColor, Time.deltaTime);
+#endif
         return true;
     }
 
@@ -1027,6 +1031,7 @@ public class EnemyMonsterAI : MonoBehaviour
         }
     }
 
+#if UNITY_EDITOR
     void OnDrawGizmosSelected()
     {
         halfViewAngle = viewAngle / 2f;
@@ -1056,6 +1061,7 @@ public class EnemyMonsterAI : MonoBehaviour
         Gizmos.color = Color.magenta;
         Gizmos.DrawWireSphere(transform.position, wallDetectionDistance);
     }
+#endif
 
     
     

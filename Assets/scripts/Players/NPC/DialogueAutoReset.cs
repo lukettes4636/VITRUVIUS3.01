@@ -15,7 +15,6 @@ public class DialogueAutoReset : MonoBehaviour
 
     [Header("Opciones")]
     [SerializeField] private bool resetOnPlayModeExit = true;
-    [SerializeField] private bool showDebugMessages = true;
 
     private void Awake()
     {
@@ -23,10 +22,6 @@ public class DialogueAutoReset : MonoBehaviour
         if (allDialogueData == null || allDialogueData.Length == 0)
         {
             allDialogueData = Resources.FindObjectsOfTypeAll<NPCDialogueData>();
-            if (showDebugMessages && allDialogueData.Length > 0)
-            {
-
-            }
         }
 
 #if UNITY_EDITOR
@@ -50,10 +45,6 @@ public class DialogueAutoReset : MonoBehaviour
         if (state == PlayModeStateChange.ExitingPlayMode && resetOnPlayModeExit)
         {
             ResetAllDialogues();
-            if (showDebugMessages)
-            {
-
-            }
         }
     }
 #endif
@@ -86,7 +77,8 @@ public class DialogueAutoReset : MonoBehaviour
 
 #if UNITY_EDITOR
         
-        AssetDatabase.SaveAssets();
+        
+        
 #endif
     }
 

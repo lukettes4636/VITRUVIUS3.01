@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -108,6 +108,7 @@ public class MainMenuThunderEffect : MonoBehaviour
     }
 
     
+#if UNITY_EDITOR
     [ContextMenu("Test Thunder Effect")]
     private void TestThunderEffect()
     {
@@ -164,13 +165,12 @@ public class MainMenuThunderEffect : MonoBehaviour
             }
         }
         
-
-        
         if (thunderClips.Count == 0)
         {
 
         }
     }
+#endif
 
     private IEnumerator ThunderLoop()
     {

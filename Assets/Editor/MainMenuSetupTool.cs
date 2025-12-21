@@ -8,6 +8,7 @@ using System;
 
 public class MainMenuSetupTool : EditorWindow
 {
+    [MenuItem("Tools/Setup/Main Menu Setup Tool")]
     public static void ShowWindow()
     {
         GetWindow<MainMenuSetupTool>("Setup Main Menu");
@@ -51,11 +52,11 @@ public class MainMenuSetupTool : EditorWindow
 
     private static void SetupSystem()
     {
-        // 1. Setup Layers
+        // Setup Layers
         // We assume "UI" layer exists (index 5).
         // We might want a "Background" layer, but "Default" is fine for now if UI is strictly on UI layer.
 
-        // 2. Setup Background Camera (Base)
+        // Setup Background Camera (Base)
         GameObject bgCamObj = GameObject.Find("Background Camera");
         if (bgCamObj == null)
         {
@@ -126,7 +127,7 @@ public class MainMenuSetupTool : EditorWindow
         movement.rotationSpeed = 0.2f; 
         movement.maxRotationAngle = 0.5f;
 
-        // 3. Setup UI Camera (Overlay)
+        // Setup UI Camera (Overlay)
         GameObject uiCamObj = GameObject.Find("UI Camera");
         if (uiCamObj == null)
         {
@@ -143,13 +144,13 @@ public class MainMenuSetupTool : EditorWindow
         uiCam.cullingMask = 1 << LayerMask.NameToLayer("UI"); // Only UI
         uiCam.clearFlags = CameraClearFlags.Depth; // Ignored for Overlay, but good practice
 
-        // 4. Stack UI Camera
+        // Stack UI Camera
         if (!bgCamData.cameraStack.Contains(uiCam))
         {
             bgCamData.cameraStack.Add(uiCam);
         }
 
-        // 5. Setup Canvas
+        // Setup Canvas
         Canvas canvas = FindObjectOfType<Canvas>();
         if (canvas != null)
         {
@@ -181,7 +182,7 @@ public class MainMenuSetupTool : EditorWindow
             Debug.LogError("No Canvas found!");
         }
 
-        // 6. Setup Fog
+        // Setup Fog
         // User requested "Fog" from DaVinciPB. We couldn't find it there, but found Fog_ParcialPREFAB in VFX.
         // We will use this one and ensure it's visible against the black background.
         GameObject fogPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/VFX/Fog_ParcialPREFAB.prefab");
@@ -220,29 +221,29 @@ public class MainMenuSetupTool : EditorWindow
             Debug.LogWarning("Fog Prefab not found. Using Standard Fog.");
         }
 
-        // 7. Cleanup Original Main Camera
+        // Cleanup Original Main Camera
         GameObject originalCam = GameObject.Find("Main Camera");
         if (originalCam != null && originalCam != bgCamObj && originalCam != uiCamObj)
         {
             originalCam.SetActive(false);
         }
 
-        // 8. Create Demo Content
+        // Create Demo Content
         CreateDemoContent();
         
-        // 9. Setup Street Light Flicker (Horror)
+        // Setup Street Light Flicker (Horror)
         SetupStreetLightFlicker();
 
-        // 10. Setup Transparent UI
+        // Setup Transparent UI
         SetupTransparentUI();
 
-        // 11. Setup Instinto Decal
+        // Setup Instinto Decal
         SetupInstintoDecal();
 
-        // 12. Setup Post Processing (Film Grain & Chromatic Aberration)
+        // Setup Post Processing (Film Grain & Chromatic Aberration)
         SetupPostProcessingInternal();
 
-        // 13. Setup Audio
+        // Setup Audio
         SetupAudio();
 
         Debug.Log("Main Menu 3D Setup Complete!");
@@ -250,14 +251,14 @@ public class MainMenuSetupTool : EditorWindow
 
     private static void SetupAudio()
     {
-        // 1. Ensure AudioListener (already done in Camera setup, but double check)
+        // Ensure AudioListener (already done in Camera setup, but double check)
         GameObject bgCamObj = GameObject.Find("Background Camera");
         if (bgCamObj != null)
         {
             if (bgCamObj.GetComponent<AudioListener>() == null) bgCamObj.AddComponent<AudioListener>();
         }
 
-        // 2. Ensure SoundManager exists in scene for direct testing
+        // Ensure SoundManager exists in scene for direct testing
         GameObject sm = GameObject.Find("SoundManager");
         if (sm == null)
         {
@@ -292,7 +293,7 @@ public class MainMenuSetupTool : EditorWindow
              }
         }
 
-        // 3. Ensure Menu Music Object exists
+        // Ensure Menu Music Object exists
         GameObject musicObj = GameObject.Find("Menu Music");
         if (musicObj == null)
         {
@@ -458,7 +459,7 @@ public class MainMenuSetupTool : EditorWindow
             volume.profile = profile;
         }
         
-        // 1. Tonemapping (ACES) - Essential for cinematic look
+        // Tonemapping (ACES) - Essential for cinematic look
         if (!volume.profile.TryGet(out Tonemapping tonemapping))
         {
             tonemapping = volume.profile.Add<Tonemapping>(true);
@@ -466,7 +467,7 @@ public class MainMenuSetupTool : EditorWindow
         tonemapping.active = true;
         tonemapping.mode.Override(TonemappingMode.ACES);
 
-        // 2. Bloom - Glow for lights
+        // Bloom - Glow for lights
         if (!volume.profile.TryGet(out Bloom bloom))
         {
             bloom = volume.profile.Add<Bloom>(true);
@@ -476,7 +477,7 @@ public class MainMenuSetupTool : EditorWindow
         bloom.intensity.Override(1.0f); // Reduced from 1.5f
         bloom.scatter.Override(0.4f); // Reduced from 0.5f
 
-        // 3. Vignette - Horror atmosphere
+        // Vignette - Horror atmosphere
         if (!volume.profile.TryGet(out Vignette vignette))
         {
             vignette = volume.profile.Add<Vignette>(true);
@@ -485,7 +486,7 @@ public class MainMenuSetupTool : EditorWindow
         vignette.intensity.Override(0.35f); // Slightly reduced
         vignette.smoothness.Override(0.4f);
 
-        // 4. Color Adjustments - Contrast & Saturation
+        // Color Adjustments - Contrast & Saturation
         if (!volume.profile.TryGet(out ColorAdjustments colorAdj))
         {
             colorAdj = volume.profile.Add<ColorAdjustments>(true);
@@ -495,7 +496,7 @@ public class MainMenuSetupTool : EditorWindow
         colorAdj.contrast.Override(12f); // Slightly reduced
         colorAdj.saturation.Override(8f); // More vibrant
 
-        // 5. Film Grain (Very Subtle)
+        // Film Grain (Very Subtle)
         if (!volume.profile.TryGet(out FilmGrain filmGrain))
         {
             filmGrain = volume.profile.Add<FilmGrain>(true);
@@ -504,7 +505,7 @@ public class MainMenuSetupTool : EditorWindow
         filmGrain.type.Override(FilmGrainLookup.Thin1); 
         filmGrain.intensity.Override(0.1f); // Reduced for cleaner look
         
-        // 6. Chromatic Aberration (Minimal)
+        // Chromatic Aberration (Minimal)
         if (!volume.profile.TryGet(out ChromaticAberration chromAb))
         {
             chromAb = volume.profile.Add<ChromaticAberration>(true);
@@ -517,7 +518,7 @@ public class MainMenuSetupTool : EditorWindow
 
     private static void SetupInstintoDecal()
     {
-        // 1. Find or Create Building
+        // Find or Create Building
         GameObject building = GameObject.Find("Building");
         if (building == null) building = GameObject.Find("Edificio");
         
@@ -565,7 +566,7 @@ public class MainMenuSetupTool : EditorWindow
             }
         }
 
-        // 2. Load and OPTIMIZE Texture
+        // Load and OPTIMIZE Texture
         string texPath = "Assets/instinto.jpg";
         Texture2D tex = AssetDatabase.LoadAssetAtPath<Texture2D>(texPath);
         if (tex == null)
@@ -600,7 +601,7 @@ public class MainMenuSetupTool : EditorWindow
             return;
         }
 
-        // 3. Create Poster (Quad)
+        // Create Poster (Quad)
         GameObject posterObj = GameObject.Find("Instinto Poster");
         if (posterObj == null)
         {

@@ -5,7 +5,9 @@ using System.Collections.Generic;
 namespace Vitruvius.Graphics
 {
     [DefaultExecutionOrder(100)] 
+#if UNITY_EDITOR
     [ExecuteInEditMode]
+#endif
     public class VLB_ImproveIntersection : MonoBehaviour
     {
         [Header("Target Objects")]
@@ -51,7 +53,9 @@ namespace Vitruvius.Graphics
            
         }
 
+#if UNITY_EDITOR
         [ContextMenu("Apply Fixes Now")]
+#endif
         public void ApplyFixes()
         {
             var beams = FindObjectsOfType<VolumetricLightBeamSD>();

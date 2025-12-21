@@ -555,6 +555,7 @@ public class NemesisAI_Enhanced : MonoBehaviour
 
     }
     
+#if UNITY_EDITOR
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
@@ -568,4 +569,5 @@ public class NemesisAI_Enhanced : MonoBehaviour
             Gizmos.DrawLine(transform.position, currentTarget.position);
         }
     }
+#endif
 }

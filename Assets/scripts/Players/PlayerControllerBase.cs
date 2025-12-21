@@ -8,8 +8,9 @@ public abstract class PlayerControllerBase : MonoBehaviour
     [Header("Velocidades")]
     [SerializeField] protected float moveSpeed = 5f;
     [SerializeField] protected float runSpeed = 8f;
-    [SerializeField] protected float crouchSpeed = 17.92f;
-    [SerializeField] protected float crouchRunSpeed = 25f;
+    [SerializeField] protected float crouchSpeed = 2.5f;
+    [SerializeField] protected float crouchStealthSpeed = 1.5f;
+    [SerializeField] protected float crouchRunSpeed = 4f;
     [SerializeField] protected float rotationSpeed = 10f;
     [SerializeField] protected float gravity = -9.81f;
 
@@ -18,6 +19,13 @@ public abstract class PlayerControllerBase : MonoBehaviour
     [SerializeField] protected float crouchHeight = 1f;
     [SerializeField] protected Vector3 standCenter = new Vector3(0, 1f, 0);
     [SerializeField] protected Vector3 crouchCenter = new Vector3(0, 0.5f, 0);
+
+    [Header("Fisica - Rigidbody")]
+    [SerializeField] protected float standMass = 1f;
+    [SerializeField] protected float crouchMass = 0.8f;
+    [SerializeField] protected float standDrag = 0f;
+    [SerializeField] protected float crouchDrag = 1f;
+    [SerializeField] protected float transitionDuration = 0.3f;
 
     [Header("Estamina")]
     [SerializeField] protected float maxStamina = 100f;

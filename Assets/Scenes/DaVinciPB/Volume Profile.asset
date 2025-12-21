@@ -116,13 +116,13 @@ MonoBehaviour:
     m_Value: 1
   saturate:
     m_OverrideState: 1
-    m_Value: -0.454
+    m_Value: -0.809
   brightness:
     m_OverrideState: 1
-    m_Value: 1.035
+    m_Value: 1
   contrast:
     m_OverrideState: 1
-    m_Value: 1.034
+    m_Value: 1.012
   daltonize:
     m_OverrideState: 0
     m_Value: 0
@@ -143,14 +143,14 @@ MonoBehaviour:
     m_Value: 1
   lutIntensity:
     m_OverrideState: 1
-    m_Value: 0.1
+    m_Value: 1
   lutTexture:
     m_OverrideState: 1
-    m_Value: {fileID: 2800000, guid: cb660b42a27954f348c1567c26aaf7c9, type: 3}
+    m_Value: {fileID: 2800000, guid: c75e186435cf24b06ba55bc1c1999a6f, type: 3}
     dimension: 1
   bloomIntensity:
     m_OverrideState: 1
-    m_Value: 0.25
+    m_Value: 0.01
   bloomThreshold:
     m_OverrideState: 1
     m_Value: 0.75
@@ -758,7 +758,7 @@ MonoBehaviour:
   active: 1
   intensity:
     m_OverrideState: 1
-    m_Value: 0.077
+    m_Value: 0.013
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -877,7 +877,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 899c54efeace73346a0a16faa3afe726, type: 3}
   m_Name: Vignette
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   color:
     m_OverrideState: 1
     m_Value: {r: 0, g: 0, b: 0, a: 1}
@@ -886,7 +886,7 @@ MonoBehaviour:
     m_Value: {x: 0.5, y: 0.5}
   intensity:
     m_OverrideState: 1
-    m_Value: 0.056
+    m_Value: 0.201
   smoothness:
     m_OverrideState: 1
     m_Value: 1

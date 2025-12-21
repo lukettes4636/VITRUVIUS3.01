@@ -24,9 +24,6 @@ public class ButtonIndicatorController : MonoBehaviour
     [SerializeField] private float pulseSpeed = 2f;
     [SerializeField] private float pulseAmount = 0.1f;
 
-    [Header("Debug")]
-    [SerializeField] private bool showDebug = false;
-
     private Color currentPlayerColor = Color.white;
     private Vector3 originalScale;
 
@@ -54,11 +51,6 @@ public class ButtonIndicatorController : MonoBehaviour
         {
             shockwaveVFX.Stop();
         }
-
-        if (showDebug)
-        {
-
-        }
     }
 
     void Update()
@@ -79,11 +71,6 @@ public class ButtonIndicatorController : MonoBehaviour
         {
             animator.SetTrigger(PressHash);
         }
-
-        if (showDebug)
-        {
-
-        }
     }
 
     
@@ -93,10 +80,6 @@ public class ButtonIndicatorController : MonoBehaviour
     {
         if (shockwaveVFX == null)
         {
-            if (showDebug)
-            {
-
-            }
             return;
         }
 
@@ -116,11 +99,6 @@ public class ButtonIndicatorController : MonoBehaviour
         
         shockwaveVFX.Reinit();
         shockwaveVFX.Play();
-
-        if (showDebug)
-        {
-
-        }
     }
 
     
@@ -144,11 +122,6 @@ public class ButtonIndicatorController : MonoBehaviour
         if (shockwaveVFX != null && shockwaveVFX.HasVector4("PlayerColor"))
         {
             shockwaveVFX.SetVector4("PlayerColor", playerColor);
-        }
-
-        if (showDebug)
-        {
-
         }
     }
 

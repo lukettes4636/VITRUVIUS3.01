@@ -5,46 +5,46 @@ The Nemesis AI has been enhanced with improved detection and collision systems t
 
 ## Key Improvements
 
-### 1. Enhanced Detection System (`NemesisDetectionHelper.cs`)
+### Enhanced Detection System (`NemesisDetectionHelper.cs`)
 - **Target Validation**: Properly validates targets using layer masks and tags
 - **Line of Sight**: Improved raycast detection with height offset to avoid ground collision
 - **Field of View**: Enhanced field-of-view checks for more realistic detection
 - **Collision Detection**: Added proper collision handling to prevent traversal
 
-### 2. Collision System
+### Collision System
 - **Rigidbody**: Added Rigidbody component for physics interaction
 - **Capsule Collider**: Configured proper capsule collider for realistic collision bounds
 - **Collision Force**: Applies force when colliding with targets to create separation
 
-### 3. Multi-Target Detection
+### Multi-Target Detection
 - **Priority System**: NPCs have higher priority than players (NPC > Player1/Player2)
 - **Fallback Logic**: Maintains backward compatibility with old detection methods
 - **Layer Integration**: Properly configured layer masks for consistent detection
 
 ## Testing Instructions
 
-### 1. Basic Setup
-1. Ensure your scene has the following GameObjects with proper tags:
+### Basic Setup
+- Ensure your scene has the following GameObjects with proper tags:
    - Player1 (tag: "Player1")
    - Player2 (tag: "Player2") 
    - NPC (tag: "NPC")
 
-### 2. Nemesis Configuration
-1. Add the `NemesisAI.cs` script to your enemy GameObject
-2. Add the `NemesisDetectionHelper.cs` script (will be added automatically if missing)
-3. Configure the layer masks in the Inspector:
+### Nemesis Configuration
+- Add the `NemesisAI.cs` script to your enemy GameObject
+- Add the `NemesisDetectionHelper.cs` script (will be added automatically if missing)
+- Configure the layer masks in the Inspector:
    - **Detection Layer Mask**: Set to include Player1, Player2, and NPC layers
    - **Sound Blocker Layer**: Set to include walls and obstacles that block detection
 
-### 3. Using the NemesisTester
-1. Add the `NemesisTester.cs` script to your Nemesis GameObject
-2. Assign test objects in the Inspector:
+### Using the NemesisTester
+- Add the `NemesisTester.cs` script to your Nemesis GameObject
+- Assign test objects in the Inspector:
    - Drag Player1, Player2, and NPC GameObjects to the test fields
-3. Use the context menu options to test detection:
+- Use the context menu options to test detection:
    - Right-click on the NemesisTester component
    - Select "Test Player1 Detection", "Test Player2 Detection", or "Test NPC Detection"
 
-### 4. Visual Debugging
+### Visual Debugging
 - **Red Sphere**: Detection radius
 - **Yellow Sphere**: Sound detection radius  
 - **Magenta Sphere**: Attack range

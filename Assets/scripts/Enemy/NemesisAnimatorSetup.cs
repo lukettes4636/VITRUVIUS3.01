@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class NemesisAnimatorSetup : MonoBehaviour
 {
@@ -38,9 +38,12 @@ public class NemesisAnimatorSetup : MonoBehaviour
             animator.runtimeAnimatorController = animatorController;
         }
         
+#if UNITY_EDITOR
         ValidateAnimatorSetup();
+#endif
     }
     
+#if UNITY_EDITOR
     [ContextMenu("Validate Animator Setup")]
     public void ValidateAnimatorSetup()
     {
@@ -88,7 +91,6 @@ public class NemesisAnimatorSetup : MonoBehaviour
         }
         
         
-
 
 
         
@@ -200,6 +202,7 @@ public class NemesisAnimatorSetup : MonoBehaviour
             ValidateAnimatorSetup();
         }
     }
+#endif
 }
 
 #if UNITY_EDITOR

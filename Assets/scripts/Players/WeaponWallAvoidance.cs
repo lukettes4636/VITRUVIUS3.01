@@ -60,8 +60,9 @@ public class WeaponWallAvoidance : MonoBehaviour
     {
         Ray ray = new Ray(rayOrigin.position, transform.forward);
 
-        
+#if UNITY_EDITOR
         Debug.DrawRay(ray.origin, ray.direction * detectionDistance, _targetWeight > 0.5f ? Color.red : Color.green);
+#endif
 
         if (Physics.Raycast(ray, detectionDistance, obstacleMask))
         {

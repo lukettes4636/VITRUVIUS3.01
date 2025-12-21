@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.AI;
 using System.Collections;
 using System.Collections.Generic;
@@ -629,6 +629,7 @@ public class NemesisAI : MonoBehaviour
     }
     
     
+#if UNITY_EDITOR
     void OnDrawGizmosSelected()
     {
         
@@ -650,4 +651,5 @@ public class NemesisAI : MonoBehaviour
             Gizmos.DrawLine(transform.position, currentTarget.position);
         }
     }
+#endif
 }

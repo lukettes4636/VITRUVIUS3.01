@@ -7,10 +7,9 @@ using System.Collections; // <<<< NECESARIO PARA LAS COROUTINES
 
 public class HotbarController : MonoBehaviour
 {
-    [Header("Referencias")]
+    [Header("References")]
     public PlayerInventory playerInventory;
     public PlayerInput playerInput;
-    // Asigna el CanvasGroup del objeto raíz de la Hotbar aquí en el Inspector
     public CanvasGroup hotBarCanvasGroup;
 
     [Header("UI Slots")]
@@ -18,38 +17,36 @@ public class HotbarController : MonoBehaviour
     public Color selectedColor = Color.yellow;
     public Color normalColor = Color.white;
 
-    [Header("Control de Fade (Opacidad)")]
-    public float fadeDuration = 0.5f;       // Duración de la transición (ej. 0.5 segundos)
-    public float fadedAlpha = 0.1f;         // Opacidad cuando está inactivo (ej. 0.1)
-    public float normalAlpha = 1f;          // Opacidad cuando está activo (1.0)
-    public float fadeDelay = 3f;            // Segundos antes de que regrese al fade
+    [Header("Fade Settings")]
+    public float fadeDuration = 0.5f;
+    public float fadedAlpha = 0.1f;
+    public float normalAlpha = 1f;
+    public float fadeDelay = 3f;
 
-    [Header("Input Actions (New Input System)")]
+    [Header("Input Actions")]
     public InputActionReference moveRightAction;
     public InputActionReference moveLeftAction;
     public InputActionReference analyzeAction;
 
-    [Header("World Space Canvas References")]
-    [Tooltip("Canvas que se muestra al analizar la tarjeta.")]
+    [Header("World Space Canvas")]
+    [Tooltip("Card analysis canvas.")]
     public GameObject cardCanvas;
 
-    [Tooltip("Campo opcional: asigna aquí el texto del jugador (TextMeshProUGUI o Text) en el canvas world space.")]
+    [Tooltip("Optional player dialogue text.")]
     public TextMeshProUGUI playerDialogueText;
 
     private int selectedIndex = 0;
     private bool isCardCanvasOpen = false;
-    private float lastInteractionTime; // Temporizador de inactividad
+    private float lastInteractionTime;
 
     private void Awake()
     {
         if (playerInput == null)
             playerInput = GetComponentInParent<PlayerInput>();
 
-        // Intentar encontrar automáticamente el texto del jugador si no está asignado
         if (playerDialogueText == null)
             playerDialogueText = GetComponentInChildren<TextMeshProUGUI>(true);
 
-        // Inicializar el temporizador y establecer el estado inicial de la Hotbar en fade.
         lastInteractionTime = Time.time;
         SetAlpha(fadedAlpha);
     }
@@ -84,26 +81,18 @@ public class HotbarController : MonoBehaviour
         if (analyzeAction != null) analyzeAction.action.Disable();
     }
 
-    // ======================================================================
-    // Lógica de Fade y Temporizador
-    // ======================================================================
-
     private void Update()
     {
-        // Vuelve al fade si ha pasado el tiempo sin interacción y actualmente está visible.
+        // Return to fade if interaction time has passed and it's currently visible.
         if (hotBarCanvasGroup != null && hotBarCanvasGroup.alpha == normalAlpha && Time.time > lastInteractionTime + fadeDelay)
         {
             StartFade(fadedAlpha);
         }
     }
 
-    // Método para ser llamado en cada acción que queremos que muestre la Hotbar.
     public void RegisterInteraction()
     {
-        // 1. Asegura que la hotbar se haga visible (FadeIn)
         StartFade(normalAlpha);
-
-        // 2. Reinicia el temporizador de inactividad
         lastInteractionTime = Time.time;
     }
 
@@ -122,7 +111,7 @@ public class HotbarController : MonoBehaviour
         float startAlpha = hotBarCanvasGroup.alpha;
         float elapsedTime = 0f;
 
-        // Permite la interacción cuando va a ser visible
+        // Permite la interacciï¿½n cuando va a ser visible
         if (targetAlpha == normalAlpha)
         {
             hotBarCanvasGroup.interactable = true;
@@ -139,7 +128,7 @@ public class HotbarController : MonoBehaviour
 
         hotBarCanvasGroup.alpha = targetAlpha;
 
-        // Bloquear la interacción cuando vuelve al fade
+        // Bloquear la interacciï¿½n cuando vuelve al fade
         if (targetAlpha == fadedAlpha)
         {
             hotBarCanvasGroup.interactable = false;
@@ -147,7 +136,7 @@ public class HotbarController : MonoBehaviour
         }
     }
 
-    // Establece la opacidad instantáneamente (útil para el Awake)
+    // Establece la opacidad instantï¿½neamente (ï¿½til para el Awake)
     private void SetAlpha(float alpha)
     {
         if (hotBarCanvasGroup == null) return;
@@ -156,13 +145,8 @@ public class HotbarController : MonoBehaviour
         hotBarCanvasGroup.blocksRaycasts = alpha >= normalAlpha;
     }
 
-    // ======================================================================
-    // Lógica de Input
-    // ======================================================================
-
     private void OnMoveRight(InputAction.CallbackContext ctx)
     {
-        // REGISTRA LA INTERACCIÓN
         RegisterInteraction();
 
         selectedIndex = (selectedIndex + 1) % slots.Length;
@@ -172,7 +156,6 @@ public class HotbarController : MonoBehaviour
 
     private void OnMoveLeft(InputAction.CallbackContext ctx)
     {
-        // REGISTRA LA INTERACCIÓN
         RegisterInteraction();
 
         selectedIndex--;
@@ -184,7 +167,6 @@ public class HotbarController : MonoBehaviour
 
     private void OnAnalyzeItem(InputAction.CallbackContext ctx)
     {
-        // REGISTRA LA INTERACCIÓN
         RegisterInteraction();
 
         if (playerInventory == null) return;
@@ -193,12 +175,12 @@ public class HotbarController : MonoBehaviour
         allItems.AddRange(playerInventory.GetCollectedItems());
         allItems.AddRange(playerInventory.GetCollectedKeyCards());
 
-        // --- MODIFICACIÓN: Chequeo de slot vacío ---
-        // Si el índice seleccionado es mayor o igual a la cantidad de ítems, el slot está vacío.
+        // --- MODIFICACIï¿½N: Chequeo de slot vacï¿½o ---
+        // Si el ï¿½ndice seleccionado es mayor o igual a la cantidad de ï¿½tems, el slot estï¿½ vacï¿½o.
         if (selectedIndex >= allItems.Count)
         {
             ShowPlayerNotification("Nothing to analyze here.");
-            return; // Detenemos la ejecución aquí.
+            return; // Detenemos la ejecuciï¿½n aquï¿½.
         }
 
         string selectedItem = allItems[selectedIndex];
@@ -218,7 +200,7 @@ public class HotbarController : MonoBehaviour
                 break;
 
             default:
-                // Caso por defecto para ítems recogidos que no tienen un análisis específico.
+                // Caso por defecto para ï¿½tems recogidos que no tienen un anï¿½lisis especï¿½fico.
                 ShowPlayerNotification("Cannot analyze this item right now.");
                 break;
         }
@@ -228,7 +210,7 @@ public class HotbarController : MonoBehaviour
     {
         if (cardCanvas == null)
         {
-            Debug.LogWarning("No se asignó el canvas de la tarjeta en el inspector.");
+            Debug.LogWarning("No se asignï¿½ el canvas de la tarjeta en el inspector.");
             return;
         }
 

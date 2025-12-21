@@ -19,41 +19,41 @@ This nemesis AI system creates an implacable, Resident Evil 3-style enemy that r
 ## Files Created
 
 ### Core AI Scripts
-1. **NemesisAI.cs** - Basic nemesis AI implementation
-2. **NemesisAI_Enhanced.cs** - Enhanced version with advanced features
-3. **NemesisSoundDetector.cs** - Sound detection system for characters
+- **NemesisAI.cs**: Basic nemesis AI implementation
+- **NemesisAI_Enhanced.cs**: Enhanced version with advanced features
+- **NemesisSoundDetector.cs**: Sound detection system for characters
 
 ### Setup and Configuration
-4. **NemesisSceneSetup.cs** - Scene setup helper for DaVinciP1 scene
+- **NemesisSceneSetup.cs**: Scene setup helper for DaVinciP1 scene
 
 ## Installation Instructions
 
-### 1. Add Scripts to Your Project
+### Add Scripts to Your Project
 Copy all the script files to your `Assets/scripts/Enemy/` folder.
 
-### 2. Scene Setup
+### Scene Setup
 Add the `NemesisSceneSetup.cs` script to an empty GameObject in your DaVinciP1 scene.
 
-### 3. Configure the Setup Script
+### Configure the Setup Script
 In the Inspector:
 - Assign your nemesis prefab (or leave empty to create from scratch)
 - Set the spawn position for the nemesis
 - Configure audio clips for attack, detection, and roar sounds
 - Adjust detection ranges and speeds as needed
 
-### 4. Tag Your GameObjects
+### Tag Your GameObjects
 Make sure your scene has properly tagged objects:
 - Player1: Tag as "Player1"
 - Player2: Tag as "Player2" 
 - NPC: Tag as "NPC"
 
-### 5. Setup Navigation
+### Setup Navigation
 Ensure your scene has:
 - NavMeshSurface component
 - Properly baked NavMesh
 - Walls and obstacles on appropriate layers
 
-### 6. Setup Audio
+### Setup Audio
 Configure the nemesis audio system:
 - Assign attack sound effects
 - Assign detection sound effects
@@ -93,10 +93,10 @@ public float soundPriority = 1f;             // Sound priority (lowest)
 ## Usage Instructions
 
 ### Basic Usage
-1. Add `NemesisSceneSetup` to your scene
-2. Click "Setup Scene" in the Inspector
-3. The nemesis will automatically spawn and begin patrolling
-4. Players and NPCs will be detected and pursued
+- Add `NemesisSceneSetup` to your scene
+- Click "Setup Scene" in the Inspector
+- The nemesis will automatically spawn and begin patrolling
+- Players and NPCs will be detected and pursued
 
 ### Advanced Usage
 Use the enhanced AI script (`NemesisAI_Enhanced.cs`) for:

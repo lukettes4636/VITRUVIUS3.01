@@ -3,6 +3,7 @@ using UnityEditor.Animations;
 
 public static class FixAnimatorControllers
 {
+    [MenuItem("Tools/Cleanup/Fix Animator Controllers")]
     public static void Run()
     {
         var guids = AssetDatabase.FindAssets("t:AnimatorController");

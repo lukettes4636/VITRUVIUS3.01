@@ -13,6 +13,7 @@ public static class SanitizeAscii
         Run();
     }
 
+    [MenuItem("Tools/Cleanup/Sanitize ASCII in Scripts")]
     private static void RunMenu()
     {
         Run();

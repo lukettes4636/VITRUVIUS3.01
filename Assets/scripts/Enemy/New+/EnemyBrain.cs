@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(EnemySenses), typeof(EnemyMotor), typeof(EnemyVisuals))]
@@ -35,10 +35,6 @@ public class EnemyBrain : MonoBehaviour
     [Header("Investigacion")]
     [Tooltip("Tiempo que el enemigo investiga en un punto sin recibir sonido")]
     public float investigationDuration = 3.0f;
-
-    [Header("Debug")]
-    public bool showDebugLogs = false;
-    public bool showWallDebug = true;
 
     private float lastWallCheckTime = 0f;
     private float wallCheckInterval = 0.3f;

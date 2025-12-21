@@ -6,6 +6,7 @@ using UnityEngine;
 
 public static class RemoveMissingComponents
 {
+    [MenuItem("Tools/Cleanup/Remove Missing Components")]
     public static void Run()
     {
         var sceneGuids = AssetDatabase.FindAssets("t:Scene");

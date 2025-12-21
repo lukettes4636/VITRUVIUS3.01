@@ -158,6 +158,7 @@ public class NemesisSceneReset : MonoBehaviour
     
     
     
+#if UNITY_EDITOR
     [ContextMenu("Reset Nemesis Now")]
     public void ResetNemesisManual()
     {
@@ -199,4 +200,5 @@ public class NemesisSceneReset : MonoBehaviour
             UnityEditor.Handles.Label(transform.position + Vector3.up * 2f, $"Current Position: {transform.position}");
         }
     }
+#endif
 }

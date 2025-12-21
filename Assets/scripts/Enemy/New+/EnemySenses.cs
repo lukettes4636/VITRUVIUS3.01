@@ -48,8 +48,51 @@ public class EnemySenses : MonoBehaviour
 
     public Transform CurrentTarget => CurrentPlayer ?? CurrentNPCTarget ?? CurrentNoisyObject;
 
-    public bool showDebugGizmos = true;
     private Dictionary<Transform, float> ignoredObjectsUntil = new Dictionary<Transform, float>();
+
+    private struct TargetCache
+    {
+        public Transform transform;
+        public PlayerHealth playerHealth;
+        public NPCHealth npcHealth;
+        public PlayerNoiseEmitter playerNoise;
+        public NPCNoiseEmitter npcNoise;
+    }
+
+    private List<TargetCache> playerCache = new List<TargetCache>();
+    private List<TargetCache> npcCache = new List<TargetCache>();
+
+    void Start()
+    {
+        InitializeCaches();
+    }
+
+    private void InitializeCaches()
+    {
+        playerCache.Clear();
+        foreach (var p in playerTargets)
+        {
+            if (p == null) continue;
+            playerCache.Add(new TargetCache
+            {
+                transform = p,
+                playerHealth = p.GetComponent<PlayerHealth>(),
+                playerNoise = p.GetComponent<PlayerNoiseEmitter>()
+            });
+        }
+
+        npcCache.Clear();
+        foreach (var n in npcTargets)
+        {
+            if (n == null) continue;
+            npcCache.Add(new TargetCache
+            {
+                transform = n,
+                npcHealth = n.GetComponent<NPCHealth>(),
+                npcNoise = n.GetComponent<NPCNoiseEmitter>()
+            });
+        }
+    }
 
     public void Tick()
     {
@@ -71,20 +114,14 @@ public class EnemySenses : MonoBehaviour
 
             float dist = Vector3.Distance(transform.position, target.position);
             
-            
-            
             bool isEmittingActiveNoise = noiseRadius > idleNoiseRadius + 0.1f;
-            
             
             if (!isEmittingActiveNoise)
             {
                 return;
             }
             
-            
             float strength = CalculateAudioStrength(target, noiseRadius, dist);
-            
-            
             
             bool shouldDetect = strength > detectionThreshold;
 
@@ -101,43 +138,37 @@ public class EnemySenses : MonoBehaviour
             }
         }
 
-        foreach (Transform player in playerTargets)
+        foreach (var cache in playerCache)
         {
-            if (player == null) continue;
-            var health = player.GetComponent<PlayerHealth>();
-            if (health != null && health.IsDead) continue;
-            var noise = player.GetComponent<PlayerNoiseEmitter>();
+            if (cache.transform == null) continue;
+            if (cache.playerHealth != null && cache.playerHealth.IsDead) continue;
 
-            if (noise != null)
+            if (cache.playerNoise != null)
             {
-                float effectiveRadius = Mathf.Max(noise.currentNoiseRadius, 1.5f);
-                float idleRadius = noise.idleNoiseRadius;
-                CheckTarget(player, effectiveRadius, idleRadius, false);
+                float effectiveRadius = Mathf.Max(cache.playerNoise.currentNoiseRadius, 1.5f);
+                float idleRadius = cache.playerNoise.idleNoiseRadius;
+                CheckTarget(cache.transform, effectiveRadius, idleRadius, false);
             }
             else
             {
-                
-                CheckTarget(player, 2.0f, 0f, false);
+                CheckTarget(cache.transform, 2.0f, 0f, false);
             }
         }
 
-        foreach (Transform npc in npcTargets)
+        foreach (var cache in npcCache)
         {
-            if (npc == null) continue;
-            var health = npc.GetComponent<NPCHealth>();
-            if (health != null && health.IsDead) continue;
-            var noise = npc.GetComponent<NPCNoiseEmitter>();
+            if (cache.transform == null) continue;
+            if (cache.npcHealth != null && cache.npcHealth.IsDead) continue;
 
-            if (noise != null)
+            if (cache.npcNoise != null)
             {
-                float effectiveRadius = Mathf.Max(noise.currentNoiseRadius, 1.5f);
-                float idleRadius = noise.idleNoiseRadius;
-                CheckTarget(npc, effectiveRadius, idleRadius, true);
+                float effectiveRadius = Mathf.Max(cache.npcNoise.currentNoiseRadius, 1.5f);
+                float idleRadius = cache.npcNoise.idleNoiseRadius;
+                CheckTarget(cache.transform, effectiveRadius, idleRadius, true);
             }
             else
             {
-                
-                CheckTarget(npc, 2.0f, 0f, true);
+                CheckTarget(cache.transform, 2.0f, 0f, true);
             }
         }
 
@@ -145,18 +176,25 @@ public class EnemySenses : MonoBehaviour
 
         if (bestTarget != null)
         {
-            
             bool stillMakingNoise = false;
-            PlayerNoiseEmitter playerNoise = bestTarget.GetComponent<PlayerNoiseEmitter>();
-            NPCNoiseEmitter npcNoise = bestTarget.GetComponent<NPCNoiseEmitter>();
             
-            if (playerNoise != null)
+            
+            TargetCache bestCache = default;
+            bool foundInCache = false;
+            
+            foreach(var c in playerCache) if(c.transform == bestTarget) { bestCache = c; foundInCache = true; break; }
+            if(!foundInCache) foreach(var c in npcCache) if(c.transform == bestTarget) { bestCache = c; foundInCache = true; break; }
+
+            if (foundInCache)
             {
-                stillMakingNoise = playerNoise.currentNoiseRadius > playerNoise.idleNoiseRadius + 0.1f;
-            }
-            else if (npcNoise != null)
-            {
-                stillMakingNoise = npcNoise.currentNoiseRadius > npcNoise.idleNoiseRadius + 0.1f;
+                if (bestCache.playerNoise != null)
+                {
+                    stillMakingNoise = bestCache.playerNoise.currentNoiseRadius > bestCache.playerNoise.idleNoiseRadius + 0.1f;
+                }
+                else if (bestCache.npcNoise != null)
+                {
+                    stillMakingNoise = bestCache.npcNoise.currentNoiseRadius > bestCache.npcNoise.idleNoiseRadius + 0.1f;
+                }
             }
             
             if (stillMakingNoise)
@@ -177,7 +215,6 @@ public class EnemySenses : MonoBehaviour
             }
             else
             {
-                
                 if (CurrentPlayer == bestTarget) CurrentPlayer = null;
                 if (CurrentNPCTarget == bestTarget) CurrentNPCTarget = null;
                 
@@ -439,39 +476,6 @@ public class EnemySenses : MonoBehaviour
         {
             if (ignoredObjectsUntil[k] <= Time.time)
                 ignoredObjectsUntil.Remove(k);
-        }
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        if (!showDebugGizmos) return;
-
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, maxHearingDistance);
-
-        Gizmos.color = new Color(0f, 1f, 0f, 0.3f);
-        Gizmos.DrawWireSphere(transform.position, proximityDetectionRadius);
-
-        if (HasTargetOfInterest)
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(transform.position, TargetPositionOfInterest);
-
-            float dist = Vector3.Distance(transform.position, TargetPositionOfInterest);
-            Gizmos.color = dist <= proximityDetectionRadius ? Color.green : Color.red;
-            Gizmos.DrawWireSphere(TargetPositionOfInterest, 0.5f);
-        }
-
-        Vector3 origin = transform.position + Vector3.up;
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(origin + transform.forward * 1.0f, 0.8f);
-        Gizmos.DrawRay(origin, transform.forward * frontWallCheckDistance);
-
-        if (CurrentWallTarget != null)
-        {
-            Gizmos.color = Color.magenta;
-            Gizmos.DrawLine(transform.position, CurrentWallTarget.transform.position);
-            Gizmos.DrawWireCube(CurrentWallTarget.transform.position, Vector3.one * 2f);
         }
     }
 }

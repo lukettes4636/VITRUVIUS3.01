@@ -12,7 +12,8 @@ public static class StripComments
         TryStripAll();
     }
 
-    public static void StripAllMenu()
+    [MenuItem("Tools/Cleanup/Strip Comments from Scripts")]
+    public static void Run()
     {
         TryStripAll();
     }

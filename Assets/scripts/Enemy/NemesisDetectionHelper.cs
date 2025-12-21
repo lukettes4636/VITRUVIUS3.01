@@ -13,9 +13,6 @@ public class NemesisDetectionHelper : MonoBehaviour
     [Tooltip("Height offset for detection rays (to avoid ground collision)")]
     public float raycastHeightOffset = 1f;
     
-    [Tooltip("Enable debug visualization in Scene view")]
-    public bool showDebugRays = true;
-    
     [Header("Collision Configuration")]
     [Tooltip("Should the nemesis collide with targets?")]
     public bool enableCollisions = true;
@@ -108,10 +105,6 @@ public class NemesisDetectionHelper : MonoBehaviour
             
             if (hit.transform != target)
             {
-                if (showDebugRays)
-                {
-                    Debug.DrawRay(myPosition, direction * distance, Color.red, 0.1f);
-                }
                 return false;
             }
         }
@@ -120,11 +113,6 @@ public class NemesisDetectionHelper : MonoBehaviour
         if (Vector3.Dot(transform.forward, direction) < -0.5f) 
         {
             return false;
-        }
-        
-        if (showDebugRays)
-        {
-            Debug.DrawRay(myPosition, direction * distance, Color.green, 0.1f);
         }
         
         return true;
@@ -229,27 +217,6 @@ public class NemesisDetectionHelper : MonoBehaviour
             {
                 rb.AddForce(separationDirection * collisionForce * 0.5f, ForceMode.Force);
             }
-        }
-    }
-    
-    void OnDrawGizmosSelected()
-    {
-        if (!showDebugRays) return;
-        
-        
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(transform.position, collisionRadius);
-        
-        
-        if (parentAI != null)
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, parentAI.detectionRadius);
-        }
-        else if (parentAIEnhanced != null)
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, parentAIEnhanced.detectionRadius);
         }
     }
     

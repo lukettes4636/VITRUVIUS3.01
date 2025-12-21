@@ -12,11 +12,7 @@ public static class StripDebugLogs
         Run();
     }
 
-    private static void RunMenu()
-    {
-        Run();
-    }
-
+    [MenuItem("Tools/Cleanup/Strip Debug Logs")]
     private static void Run()
     {
         string root = Path.Combine(Application.dataPath, "scripts");

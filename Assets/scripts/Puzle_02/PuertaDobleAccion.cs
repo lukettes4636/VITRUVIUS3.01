@@ -88,9 +88,6 @@ public class PuertaDobleAccion : MonoBehaviour
     [SerializeField] private Vector2 singleButtonOffset = Vector2.zero;
     [SerializeField] private Vector2 coopButtonOffset = Vector2.zero;
 
-    [Header("Debug Settings")]
-    [SerializeField] private bool showDebugInfo = false;
-
     private List<PlayerIdentifier> activePlayers;
     private List<Renderer> doorRenderers;
     private MaterialPropertyBlock propertyBlock;
@@ -391,22 +388,12 @@ public class PuertaDobleAccion : MonoBehaviour
             uiController.ShowNotification(waitingForPartnerMessage);
         }
 
-        if (showDebugInfo)
-        {
-
-        }
-
         yield return new WaitForSeconds(tiempoDeBuffer);
 
         if (hitData.isWaitingForPartner)
         {
             hitData.isWaitingForPartner = false;
             hitData.timestamp = float.MinValue;
-
-            if (showDebugInfo)
-            {
-
-            }
         }
     }
 
@@ -494,11 +481,6 @@ public class PuertaDobleAccion : MonoBehaviour
         if (jugadoresEnTrigger.Count < 2)
         {
             PlayErrorAudio();
-
-            if (showDebugInfo)
-            {
-
-            }
             return;
         }
 
@@ -525,18 +507,8 @@ public class PuertaDobleAccion : MonoBehaviour
         PlayerHitData otherHitData = playerHitData[otroJugador];
         float diferenciaTiempo = Mathf.Abs(tiempoActual - otherHitData.timestamp);
 
-        if (showDebugInfo)
-        {
-
-        }
-
         if (usarSistemaDeBuffer && otherHitData.isWaitingForPartner)
         {
-            if (showDebugInfo)
-            {
-
-            }
-
             if (otherHitData.bufferCoroutine != null)
             {
                 StopCoroutine(otherHitData.bufferCoroutine);
@@ -553,11 +525,6 @@ public class PuertaDobleAccion : MonoBehaviour
 
         if (diferenciaTiempo <= ventanaDeTiempo && otherHitData.timestamp > float.MinValue)
         {
-            if (showDebugInfo)
-            {
-
-            }
-
             GolpeExitoso(jugador, otroJugador);
 
             currentHitData.timestamp = float.MinValue;
@@ -574,17 +541,7 @@ public class PuertaDobleAccion : MonoBehaviour
 
             currentHitData.bufferCoroutine = StartCoroutine(WaitForPartnerBuffer(jugador));
             PlayButtonReadyAudio();
-
-            if (showDebugInfo)
-            {
-
-            }
             return;
-        }
-
-        if (showDebugInfo)
-        {
-
         }
 
         PlayErrorAudio();
@@ -594,11 +551,6 @@ public class PuertaDobleAccion : MonoBehaviour
     {
         golpesActuales++;
         bool isFinalHit = golpesActuales >= golpesNecesarios;
-
-        if (showDebugInfo)
-        {
-
-        }
 
         currentStress = Mathf.Clamp01(currentStress + stressAddedPerHit);
 
@@ -703,11 +655,6 @@ public class PuertaDobleAccion : MonoBehaviour
         estaAbierta = true;
         anguloObjetivo += 90f;
         SetOutlineState(Color.black, 0.0f);
-
-        if (showDebugInfo)
-        {
-
-        }
 
         if (playDoorSounds && AudioManager.Instance != null)
         {

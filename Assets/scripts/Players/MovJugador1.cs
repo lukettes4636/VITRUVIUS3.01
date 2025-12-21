@@ -14,8 +14,9 @@ public class MovJugador1 : MonoBehaviour
     [Header("Velocidades")]
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float runSpeed = 8f;
-    [SerializeField] private float crouchSpeed = 17.92f;
-    [SerializeField] private float crouchRunSpeed = 25f;
+    [SerializeField] private float crouchSpeed = 2.5f;
+    [SerializeField] private float crouchStealthSpeed = 1.5f;
+    [SerializeField] private float crouchRunSpeed = 4f;
     [SerializeField] private float rotationSpeed = 10f;
     [SerializeField] private float gravity = -9.81f;
 
@@ -24,6 +25,18 @@ public class MovJugador1 : MonoBehaviour
     [SerializeField] private float crouchHeight = 1f;
     [SerializeField] private Vector3 standCenter = new Vector3(0, 1f, 0);
     [SerializeField] private Vector3 crouchCenter = new Vector3(0, 0.5f, 0);
+
+    [Header("Fisica - Rigidbody")]
+    [SerializeField] private float standMass = 1f;
+    [SerializeField] private float crouchMass = 0.8f;
+    [SerializeField] private float standDrag = 0f;
+    [SerializeField] private float crouchDrag = 1f;
+    [SerializeField] private float transitionDuration = 0.3f;
+
+    [Header("Fisica - Materiales")]
+    [SerializeField] private PhysicMaterial standPhysicsMaterial;
+    [SerializeField] private PhysicMaterial crouchPhysicsMaterial;
+    [SerializeField] private PhysicMaterial stealthPhysicsMaterial;
 
     [Header("Estamina")]
     [SerializeField] private float maxStamina = 100f;
@@ -108,6 +121,14 @@ public class MovJugador1 : MonoBehaviour
     private bool isInUI = false;
     private KeypadUIManager currentLockUI = null;
 
+    private Rigidbody playerRigidbody;
+    private bool isTransitioning = false;
+    private float transitionTimer = 0f;
+    private float previousHeight;
+    private Vector3 previousCenter;
+    private PhysicMaterial currentPhysicsMaterial;
+    private Collider playerCollider;
+
     private FallenDoor currentDoorToLift = null;
     private bool isHoldingDoor = false;
     private bool isAnimationInLiftState = false;
@@ -191,6 +212,8 @@ public class MovJugador1 : MonoBehaviour
         playerInventory = GetComponent<PlayerInventory>();
         staminaUI = GetComponent<PlayerStaminaUI>();
         playerInput = GetComponent<PlayerInput>();
+        playerRigidbody = GetComponent<Rigidbody>();
+        playerCollider = GetComponent<Collider>();
 
         if (fatigueFeedback == null)
         {
@@ -369,9 +392,10 @@ public class MovJugador1 : MonoBehaviour
     public void OnCrouch(InputValue value)
     {
         if (isInUI) return;
-        if (value.isPressed)
+        if (value.isPressed && !isTransitioning)
         {
             isCrouching = !isCrouching;
+            StartCrouchTransition();
         }
     }
 
@@ -1002,7 +1026,22 @@ public class MovJugador1 : MonoBehaviour
                 staminaUI.HideStaminaBar();
                 wasRunning = false;
             }
-            return crouchSpeed;
+            
+            bool isStealthMode = Input.GetKey(KeyCode.LeftShift);
+            
+            if (playerCollider != null && !isTransitioning)
+            {
+                if (isStealthMode && stealthPhysicsMaterial != null)
+                {
+                    playerCollider.material = stealthPhysicsMaterial;
+                }
+                else if (crouchPhysicsMaterial != null)
+                {
+                    playerCollider.material = crouchPhysicsMaterial;
+                }
+            }
+            
+            return isStealthMode ? crouchStealthSpeed : crouchSpeed;
         }
         else if (isRunningInput && moving && canRun)
         {
@@ -1083,8 +1122,11 @@ public class MovJugador1 : MonoBehaviour
         animator.SetBool("IsCrouching", isCrouching);
         animator.SetBool("IsRunning", isRunningInput && moving && canRun);
 
-        controller.height = isCrouching ? crouchHeight : standHeight;
-        controller.center = isCrouching ? crouchCenter : standCenter;
+        if (!isTransitioning)
+        {
+            controller.height = isCrouching ? crouchHeight : standHeight;
+            controller.center = isCrouching ? crouchCenter : standCenter;
+        }
 
         animator.SetFloat("Speed", moving ? (isRunningInput && canRun ? (isCrouching ? 1.5f : 2f) : (isCrouching ? 1.0f : 1f)) : 0f);
     }
@@ -1203,6 +1245,66 @@ public class MovJugador1 : MonoBehaviour
     public bool IsCrouchingState => isCrouching;
     public bool IsRunningState => isRunningInput && isMoving && canRun && !isCrouching;
     public Transform GetTransform() => this.transform;
+
+    #endregion
+
+    #region Crouch Transition Methods
+
+    private void StartCrouchTransition()
+    {
+        if (isTransitioning) return;
+        
+        isTransitioning = true;
+        transitionTimer = 0f;
+        previousHeight = controller.height;
+        previousCenter = controller.center;
+        
+        StartCoroutine(SmoothCrouchTransition());
+    }
+
+    private System.Collections.IEnumerator SmoothCrouchTransition()
+    {
+        float targetHeight = isCrouching ? crouchHeight : standHeight;
+        Vector3 targetCenter = isCrouching ? crouchCenter : standCenter;
+        float targetMass = isCrouching ? crouchMass : standMass;
+        float targetDrag = isCrouching ? crouchDrag : standDrag;
+        PhysicMaterial targetPhysicsMaterial = isCrouching ? crouchPhysicsMaterial : standPhysicsMaterial;
+        
+        while (transitionTimer < transitionDuration)
+        {
+            transitionTimer += Time.deltaTime;
+            float t = transitionTimer / transitionDuration;
+            t = Mathf.SmoothStep(0f, 1f, t);
+            
+            controller.height = Mathf.Lerp(previousHeight, targetHeight, t);
+            controller.center = Vector3.Lerp(previousCenter, targetCenter, t);
+            
+            if (playerRigidbody != null)
+            {
+                playerRigidbody.mass = Mathf.Lerp(playerRigidbody.mass, targetMass, t);
+                playerRigidbody.drag = Mathf.Lerp(playerRigidbody.drag, targetDrag, t);
+            }
+            
+            yield return null;
+        }
+        
+        controller.height = targetHeight;
+        controller.center = targetCenter;
+        
+        if (playerRigidbody != null)
+        {
+            playerRigidbody.mass = targetMass;
+            playerRigidbody.drag = targetDrag;
+        }
+        
+        if (playerCollider != null && targetPhysicsMaterial != null)
+        {
+            playerCollider.material = targetPhysicsMaterial;
+            currentPhysicsMaterial = targetPhysicsMaterial;
+        }
+        
+        isTransitioning = false;
+    }
 
     #endregion
 }

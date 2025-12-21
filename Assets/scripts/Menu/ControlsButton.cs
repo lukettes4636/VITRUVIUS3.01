@@ -25,16 +25,14 @@ namespace VITRUVIUS.Menu
         [SerializeField] private UnityEvent onControlsHidden;
         
         private Button button;
+        private PauseController pauseController;
         private bool isShowingControls = false;
         private bool isSelected = false;
         
         private void Awake()
         {
             button = GetComponent<Button>();
-            if (button == null)
-            {
-
-            }
+            pauseController = FindObjectOfType<PauseController>();
             
             SetupControlsCanvas();
             SetupBackButton();
@@ -65,19 +63,11 @@ namespace VITRUVIUS.Menu
     {
         if (blockInputDuringTransition && isTransitioning)
         {
-            if (enableDebugMode)
-            {
-
-            }
             return;
         }
         
         if (preventOverlap && IsAnyMenuActive())
         {
-            if (enableDebugMode)
-            {
-
-            }
             return;
         }
         
@@ -108,11 +98,6 @@ namespace VITRUVIUS.Menu
         }
         
         SelectFirstControlsButton();
-        
-        if (enableDebugMode)
-        {
-
-        }
     }
     
     System.Collections.IEnumerator TransitionToControls()
@@ -157,27 +142,18 @@ namespace VITRUVIUS.Menu
         
         SelectFirstControlsButton();
         isTransitioning = false;
-        
-        if (enableDebugMode)
-        {
-
-        }
     }
     
     bool IsAnyMenuActive()
     {
         return (controlsCanvasGroup != null && controlsCanvasGroup.alpha > 0) ||
-               (FindObjectOfType<PauseController>()?.IsPaused() ?? false);
+               (pauseController?.IsPaused() ?? false);
     }
         
     public void HideControls()
     {
         if (blockInputDuringTransition && isTransitioning)
         {
-            if (enableDebugMode)
-            {
-
-            }
             return;
         }
         
@@ -207,7 +183,6 @@ namespace VITRUVIUS.Menu
             controlsCanvas.SetActive(false);
         }
         
-        PauseController pauseController = FindObjectOfType<PauseController>();
         if (pauseController != null)
         {
             pauseController.ShowPauseMenuFromControls();
@@ -221,11 +196,6 @@ namespace VITRUVIUS.Menu
         }
         
         onControlsHidden?.Invoke();
-        
-        if (enableDebugMode)
-        {
-
-        }
     }
     
     System.Collections.IEnumerator TransitionFromControls()
@@ -264,7 +234,6 @@ namespace VITRUVIUS.Menu
         isShowingControls = false;
         isTransitioning = false;
         
-        PauseController pauseController = FindObjectOfType<PauseController>();
         if (pauseController != null)
         {
             pauseController.ShowPauseMenuFromControls();
@@ -278,11 +247,6 @@ namespace VITRUVIUS.Menu
         }
         
         onControlsHidden?.Invoke();
-        
-        if (enableDebugMode)
-        {
-
-        }
     }
         
         private void SetupSprites()
@@ -381,7 +345,6 @@ namespace VITRUVIUS.Menu
     {
         if (controlsCanvas == null)
         {
-
             return;
         }
         
@@ -398,20 +361,8 @@ namespace VITRUVIUS.Menu
         }
         
         controlsCanvas.SetActive(false);
-        
-        if (enableDebugMode)
-        {
-
-        }
     }
     
-
-
-
-    [Header("Debug Settings")]
-    [SerializeField] private bool enableDebugMode = false;
-
-
     void SelectFirstControlsButton()
     {
         if (backButton != null)
