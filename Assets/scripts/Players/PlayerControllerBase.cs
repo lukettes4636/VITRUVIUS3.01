@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.VFX;
@@ -8,7 +8,8 @@ public abstract class PlayerControllerBase : MonoBehaviour
     [Header("Velocidades")]
     [SerializeField] protected float moveSpeed = 5f;
     [SerializeField] protected float runSpeed = 8f;
-    [SerializeField] protected float crouchSpeed = 8.96f;
+    [SerializeField] protected float crouchSpeed = 17.92f;
+    [SerializeField] protected float crouchRunSpeed = 25f;
     [SerializeField] protected float rotationSpeed = 10f;
     [SerializeField] protected float gravity = -9.81f;
 
@@ -250,8 +251,8 @@ public abstract class PlayerControllerBase : MonoBehaviour
 
         
         animator.SetBool("IsCrouching", isCrouching);
-        animator.SetBool("IsRunning", isRunningInput && moving && canRun && !isCrouching);
-        animator.SetFloat("Speed", moving ? (isRunningInput && canRun ? 2f : (isCrouching ? 0.5f : 1f)) : 0f);
+        animator.SetBool("IsRunning", isRunningInput && moving && canRun);
+        animator.SetFloat("Speed", moving ? (isRunningInput && canRun ? (isCrouching ? 1.5f : 2f) : (isCrouching ? 1.0f : 1f)) : 0f);
     }
 
     protected virtual Vector3 CalculateMovementDirection()
@@ -270,7 +271,11 @@ public abstract class PlayerControllerBase : MonoBehaviour
     protected virtual float GetDesiredSpeed()
     {
         if (!canRun) return 0f;
-        if (isCrouching) return crouchSpeed;
+        if (isCrouching)
+        {
+            if (isRunningInput && moveInput.magnitude > 0.1f && canRun) return crouchRunSpeed;
+            return crouchSpeed;
+        }
         if (isRunningInput && moveInput.magnitude > 0.1f && canRun) return runSpeed;
         return moveInput.magnitude > 0.1f ? moveSpeed : 0f;
     }
@@ -294,7 +299,7 @@ public abstract class PlayerControllerBase : MonoBehaviour
         }
 
         
-        if (isRunningInput && moving && canRun && !isCrouching)
+        if (isRunningInput && moving && canRun)
         {
             currentStamina = Mathf.Clamp(currentStamina - staminaDepletionRate * Time.deltaTime, 0, maxStamina);
             staminaUI?.UpdateStaminaValue(currentStamina, maxStamina);

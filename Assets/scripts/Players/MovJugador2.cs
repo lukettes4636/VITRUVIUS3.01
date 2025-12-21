@@ -14,7 +14,8 @@ public class MovJugador2 : MonoBehaviour
     [Header("Velocidades")]
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float runSpeed = 8f;
-    [SerializeField] private float crouchSpeed = 8.96f;
+    [SerializeField] private float crouchSpeed = 17.92f;
+    [SerializeField] private float crouchRunSpeed = 25f;
     [SerializeField] private float rotationSpeed = 10f;
     [SerializeField] private float gravity = -9.81f;
 
@@ -1018,6 +1019,10 @@ public class MovJugador2 : MonoBehaviour
         }
         else if (isCrouching)
         {
+            if (isRunningInput && isMoving && canRun)
+            {
+                return crouchRunSpeed;
+            }
             if (wasRunning && staminaUI != null)
             {
                 staminaUI.HideStaminaBar();
@@ -1106,19 +1111,19 @@ public class MovJugador2 : MonoBehaviour
         }
 
         animator.SetBool("IsCrouching", isCrouching);
-        animator.SetBool("IsRunning", isRunningInput && isMoving && canRun && !isCrouching);
+        animator.SetBool("IsRunning", isRunningInput && isMoving && canRun);
 
         if (isCrouching)
         {
             controller.height = crouchHeight;
             controller.center = crouchCenter;
-            animator.SetFloat("Speed", isMoving ? 0.5f : 0f);
+            animator.SetFloat("Speed", isMoving ? (isRunningInput && canRun ? 1.5f : 1.0f) : 0f);
         }
         else
         {
             controller.height = standHeight;
             controller.center = standCenter;
-            animator.SetFloat("Speed", isMoving ? 1f : 0f);
+            animator.SetFloat("Speed", isMoving ? (isRunningInput && canRun ? 2f : 1f) : 0f);
         }
     }
 

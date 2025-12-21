@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -9,7 +9,8 @@ public class MovJoystick : MonoBehaviour
     [Header("Movement Settings")]
     public float moveSpeed = 5f;
     public float runSpeed = 10f;
-    public float crouchSpeed = 2f;
+    public float crouchSpeed = 17.92f;
+    public float crouchRunSpeed = 25f;
     public float rotationSpeed = 5f;
     public float gravity = -9.81f;
     public float runDuration = 4f;
@@ -76,7 +77,7 @@ public class MovJoystick : MonoBehaviour
 
     public void OnRun(InputValue value)
     {
-        if (value.isPressed && canRun && !isCrouching)
+        if (value.isPressed && canRun)
         {
             runTimer = runDuration;
             canRun = false;
@@ -124,7 +125,7 @@ public class MovJoystick : MonoBehaviour
         float currentSpeed;
         if (isCrouching)
         {
-            currentSpeed = crouchSpeed;
+            currentSpeed = (runTimer > 0) ? crouchRunSpeed : crouchSpeed;
         }
         else if (runTimer > 0)
         {
@@ -161,15 +162,15 @@ public class MovJoystick : MonoBehaviour
         {
             controller.height = crouchHeight;
             controller.center = crouchCenter;
-            animator.SetBool("IsRunning", false);
-            animator.SetFloat("Speed", movement.magnitude);
+            animator.SetBool("IsRunning", runTimer > 0);
+            animator.SetFloat("Speed", movement.magnitude * (runTimer > 0 ? 1.5f : 1.0f));
         }
         else
         {
             controller.height = standHeight;
             controller.center = standCenter;
             animator.SetBool("IsRunning", runTimer > 0);
-            animator.SetFloat("Speed", movement.magnitude);
+            animator.SetFloat("Speed", movement.magnitude * (runTimer > 0 ? 2f : 1f));
         }
     }
     
