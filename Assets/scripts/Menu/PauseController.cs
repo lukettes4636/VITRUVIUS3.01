@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -270,6 +270,11 @@ void Start()
             AddButtonHoverEvents(controlsButton, 1);
         }
 
+        if (backButton != null)
+        {
+            backButton.onClick.AddListener(OnBackButtonClicked);
+        }
+
         SetupPauseButtonsArray();
     }
     
@@ -498,14 +503,12 @@ public void OnPausePressed(InputAction.CallbackContext context)
         
         if (controlsCanvas != null && controlsCanvas.activeSelf)
         {
-            OnBackButtonClicked();
             return;
         }
         
         
         if (isPaused && pausePanel != null && pausePanelCanvasGroup != null && pausePanelCanvasGroup.alpha > 0)
         {
-            OnContinueButtonClicked();
             return;
         }
         
@@ -851,6 +854,23 @@ void EnsureControlsImageSetup()
     public void OnBackButtonClicked()
     {
         PlayClickSound();
+        BeginTransitionToPause();
+    }
+
+    public void BeginTransitionToPause()
+    {
+        if (!gameObject.activeInHierarchy || !isActiveAndEnabled)
+        {
+            PauseController[] controllers = FindObjectsOfType<PauseController>(true);
+            foreach (var c in controllers)
+            {
+                if (c != null && c.gameObject.activeInHierarchy && c.isActiveAndEnabled)
+                {
+                    c.BeginTransitionToPause();
+                    return;
+                }
+            }
+        }
         StartCoroutine(TransitionToPause());
     }
 
@@ -861,14 +881,9 @@ System.Collections.IEnumerator TransitionToControls()
         
         float duration = Mathf.Min(transitionDuration, 0.5f);
         
-        
-        float elapsedTime = 0f;
-        while (elapsedTime < duration)
+        if (pausePanelCanvasGroup != null)
         {
-            elapsedTime += Time.unscaledDeltaTime;
-            float alpha = Mathf.Lerp(1f, 0f, elapsedTime / duration);
-            if (pausePanelCanvasGroup != null) pausePanelCanvasGroup.alpha = alpha;
-            yield return null;
+            yield return StartCoroutine(FadeCanvasGroup(pausePanelCanvasGroup, 1f, 0f, duration));
         }
         
         if (pausePanel != null) pausePanel.SetActive(false);
@@ -880,6 +895,10 @@ System.Collections.IEnumerator TransitionToControls()
         }
         
         if (controlsCanvas != null) controlsCanvas.SetActive(true);
+        if (controlsCanvasGroup == null && controlsCanvas != null)
+        {
+            controlsCanvasGroup = controlsCanvas.GetComponent<CanvasGroup>();
+        }
         if (controlsCanvasGroup != null) 
         {
             controlsCanvasGroup.alpha = 0f;
@@ -887,17 +906,13 @@ System.Collections.IEnumerator TransitionToControls()
             controlsCanvasGroup.blocksRaycasts = true;
         }
         
-        
-        elapsedTime = 0f;
-        while (elapsedTime < duration)
+        if (controlsCanvasGroup != null)
         {
-            elapsedTime += Time.unscaledDeltaTime;
-            float alpha = Mathf.Lerp(0f, 1f, elapsedTime / duration);
-            if (controlsCanvasGroup != null) controlsCanvasGroup.alpha = alpha;
-            yield return null;
+            yield return StartCoroutine(FadeCanvasGroup(controlsCanvasGroup, 0f, 1f, duration));
+            controlsCanvasGroup.alpha = 1f;
+            controlsCanvasGroup.interactable = true;
+            controlsCanvasGroup.blocksRaycasts = true;
         }
-        
-        if (controlsCanvasGroup != null) controlsCanvasGroup.alpha = 1f;
         
         SelectControlsFirstButton();
         isTransitioning = false;
@@ -911,14 +926,13 @@ System.Collections.IEnumerator TransitionToPause()
         
         float duration = Mathf.Min(transitionDuration, 0.5f);
         
-        
-        float elapsedTime = 0f;
-        while (elapsedTime < duration)
+        if (controlsCanvasGroup == null && controlsCanvas != null)
         {
-            elapsedTime += Time.unscaledDeltaTime;
-            float alpha = Mathf.Lerp(1f, 0f, elapsedTime / duration);
-            if (controlsCanvasGroup != null) controlsCanvasGroup.alpha = alpha;
-            yield return null;
+            controlsCanvasGroup = controlsCanvas.GetComponent<CanvasGroup>();
+        }
+        if (controlsCanvasGroup != null)
+        {
+            yield return StartCoroutine(FadeCanvasGroup(controlsCanvasGroup, 1f, 0f, duration));
         }
         
         
@@ -936,17 +950,13 @@ System.Collections.IEnumerator TransitionToPause()
             pausePanelCanvasGroup.blocksRaycasts = true;
         }
         
-        
-        elapsedTime = 0f;
-        while (elapsedTime < duration)
+        if (pausePanelCanvasGroup != null)
         {
-            elapsedTime += Time.unscaledDeltaTime;
-            float alpha = Mathf.Lerp(0f, 1f, elapsedTime / duration);
-            if (pausePanelCanvasGroup != null) pausePanelCanvasGroup.alpha = alpha;
-            yield return null;
+            yield return StartCoroutine(FadeCanvasGroup(pausePanelCanvasGroup, 0f, 1f, duration));
+            pausePanelCanvasGroup.alpha = 1f;
+            pausePanelCanvasGroup.interactable = true;
+            pausePanelCanvasGroup.blocksRaycasts = true;
         }
-        
-        if (pausePanelCanvasGroup != null) pausePanelCanvasGroup.alpha = 1f;
         
         SelectPauseFirstButton();
         isTransitioning = false;
