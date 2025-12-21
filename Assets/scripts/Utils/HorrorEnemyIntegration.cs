@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 
 
@@ -29,7 +29,8 @@ public class HorrorEnemyIntegration : MonoBehaviour
     
     
     private NemesisAI nemesisAI;
-    private HorrorCompleteSolution visibilitySolution;
+    private HorrorModelVisibilityFix visibilityFix;
+    
     private Animator animator;
     private UnityEngine.AI.NavMeshAgent agent;
     
@@ -74,10 +75,11 @@ public class HorrorEnemyIntegration : MonoBehaviour
     
     void CacheComponents()
     {
-        nemesisAI = GetComponent<NemesisAI>();
+        
         animator = GetComponent<Animator>();
         agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
-        visibilitySolution = GetComponent<HorrorCompleteSolution>();
+        visibilityFix = GetComponent<HorrorModelVisibilityFix>();
+        
         
         if (enableDebugMode)
         {
@@ -91,24 +93,20 @@ public class HorrorEnemyIntegration : MonoBehaviour
     
     void ApplyVisibilityFixes()
     {
-
-        
-        
-        if (visibilitySolution == null)
+        if (visibilityFix == null)
         {
-            visibilitySolution = gameObject.AddComponent<HorrorCompleteSolution>();
+            return;
         }
         
+        visibilityFix.SetAutoFixOnStart(autoApplyFixes);
+        visibilityFix.SetMonitorVisibility(monitorVisibility);
+        visibilityFix.SetDebugLogs(enableDebugMode);
+        visibilityFix.SetShowGizmos(showGizmos);
         
-        visibilitySolution.SetAutoFixOnStart(monitorVisibility);
-        visibilitySolution.SetMonitorVisibility(monitorVisibility);
-        visibilitySolution.SetFixDuringRoar(fixDuringRoar);
-        visibilitySolution.SetFixDuringAttack(fixDuringAttack);
-        visibilitySolution.SetDebugLogs(enableDebugMode);
-        visibilitySolution.SetShowGizmos(showGizmos);
-        
-        
-        visibilitySolution.FixAllVisibilityIssues();
+        if (enableDebugMode)
+        {
+
+        }
     }
     
     void ApplyDetectionImprovements()
@@ -145,14 +143,10 @@ public class HorrorEnemyIntegration : MonoBehaviour
     
     void ApplyAttackFixes()
     {
-
-        
         if (nemesisAI == null)
         {
-
             return;
         }
-        
         
         if (nemesisAI.attackDamage <= 0)
         {
@@ -168,7 +162,6 @@ public class HorrorEnemyIntegration : MonoBehaviour
         {
             nemesisAI.attackCooldown = 2f; 
         }
-        
         
         if (animator != null && ensureAttackAnimation)
         {

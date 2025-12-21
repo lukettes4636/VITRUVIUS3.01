@@ -3,15 +3,22 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
+using VITRUVIUS.Menu;
 using UnityEngine.Rendering.Universal;
 
 public class PauseController : MonoBehaviour
 {
     [Header("UI References")]
+    [SerializeField] private Image controlsDisplayImage; 
+[Header("UI References")]
+    [SerializeField] private GameObject pausePanel;
     [SerializeField] private CanvasGroup pausePanelCanvasGroup; 
-    [SerializeField] private TMPro.TextMeshProUGUI pauseText; 
     [SerializeField] private UnityEngine.UI.Button continueButton;
     [SerializeField] private UnityEngine.UI.Button quitButton;
+    [SerializeField] private UnityEngine.UI.Button controlsButton;
+    [SerializeField] private UnityEngine.UI.Button backButton;
+    [SerializeField] private GameObject controlsCanvas;
+    [SerializeField] private CanvasGroup controlsCanvasGroup;
     [SerializeField] private RectTransform pauseTitleRectTransform;
 
     [Header("Auto-Setup")]
@@ -26,15 +33,13 @@ public class PauseController : MonoBehaviour
     [SerializeField] private Color normalColor = new Color(1f, 1f, 1f, 0.8f); 
     [SerializeField] private Color highlightedColor = new Color(1f, 0.2f, 0.2f, 0.3f); 
     [SerializeField] private float fadeTransitionSpeed = 3f;
-    [SerializeField] private float normalScale = 1f;
-    [SerializeField] private float highlightedScale = 1.1f;
 
     [Header("Typography")]
-    [SerializeField] private TMPro.TMP_FontAsset mainMenuFont;
 
     [Header("Button Background")]
     [SerializeField] private Image continueButtonBackground;
     [SerializeField] private Image quitButtonBackground;
+    [SerializeField] private Image controlsButtonBackground;
 
     [Header("Blur Effect")]
     [SerializeField] private Volume blurVolume; 
@@ -57,218 +62,124 @@ public class PauseController : MonoBehaviour
     private bool canNavigate = false;
     private int previousButtonIndex = -1;
 
-    void Start()
+    [Header("Transition Settings")]
+    [SerializeField] private float transitionDuration = 0.3f;
+    [SerializeField] private bool blockInputDuringTransition = true;
+    private bool isTransitioning = false;
+    private Coroutine currentTransition = null;
+
+    [Header("Validation Settings")]
+    [SerializeField] private bool validateGameState = true;
+    [SerializeField] private bool preventOverlap = true;
+    [SerializeField] private bool enableDebugMode = false;
+
+void Start()
     {
-        
+        InitializePauseSystem();
         EnsureGameNotPausedAtStart();
-        
         SetupPauseUI();
         FindPlayers();
         SetupButtonListeners();
         HidePausePanel();
         SetupAudio();
+        ValidateInitialState();
+        
+        
+        EnsureControlsImageSetup();
     }
     
-    void EnsureGameNotPausedAtStart()
+    void InitializePauseSystem()
     {
+        isTransitioning = false;
+        currentTransition = null;
         
-        if (Mathf.Approximately(Time.timeScale, 0f))
+        if (preventOverlap)
         {
-
-            Time.timeScale = 1f;
+            canNavigate = false;
         }
         
-        
-        isPaused = false;
+        if (validateGameState)
+        {
+            ValidateUIReferences();
+        }
     }
-
-    void SetupPauseUI()
+    
+    void ValidateInitialState()
     {
-
-        
-        
-        if (pausePanelCanvasGroup == null)
-        {
-            GameObject pausePanel = GameObject.Find("PausePanel");
-            if (pausePanel != null)
-            {
-                pausePanelCanvasGroup = pausePanel.GetComponent<CanvasGroup>();
-
-            }
-            else
-            {
-
-            }
-        }
-        else
-        {
-
-        }
-        
-        
         if (pausePanelCanvasGroup != null)
         {
             pausePanelCanvasGroup.alpha = 0f;
             pausePanelCanvasGroup.interactable = false;
             pausePanelCanvasGroup.blocksRaycasts = false;
-
         }
-        else
-        {
-
-        }
-
         
-        if (pauseText == null)
+        if (controlsCanvasGroup != null)
         {
-            GameObject pauseTitle = GameObject.Find("PauseTitle");
-            if (pauseTitle != null)
+            controlsCanvasGroup.alpha = 0f;
+            controlsCanvasGroup.interactable = false;
+            controlsCanvasGroup.blocksRaycasts = false;
+            if (controlsCanvas != null)
             {
-                pauseText = pauseTitle.GetComponent<TMPro.TextMeshProUGUI>();
-                pauseTitleRectTransform = pauseTitle.GetComponent<RectTransform>();
-
-            }
-            else
-            {
-
+                controlsCanvas.SetActive(false);
             }
         }
-        
-        if (pauseTitleRectTransform == null && pauseText != null)
+    }
+    
+    void ValidateUIReferences()
+    {
+        if (pausePanelCanvasGroup == null)
         {
-            pauseTitleRectTransform = pauseText.GetComponent<RectTransform>();
-        }
 
-        
-        if (mainMenuFont != null)
+        }
+        if (controlsCanvasGroup == null)
         {
-            if (pauseText != null)
-            {
-                pauseText.font = mainMenuFont;
-            }
-        }
 
-        
+        }
         if (continueButton == null)
         {
-            GameObject continueBtn = GameObject.Find("ContinueButton");
-            if (continueBtn != null)
-            {
-                continueButton = continueBtn.GetComponent<UnityEngine.UI.Button>();
 
-            }
-            else
-            {
-
-            }
         }
+        if (controlsButton == null)
+        {
 
-        
+        }
         if (quitButton == null)
         {
-            GameObject quitBtn = GameObject.Find("QuitButton");
-            if (quitBtn != null)
-            {
-                quitButton = quitBtn.GetComponent<UnityEngine.UI.Button>();
 
-            }
-            else
-            {
-
-            }
         }
-
-        
-        if (continueButtonBackground == null && continueButton != null)
+    }
+    
+    void EnsureGameNotPausedAtStart()
+    {
+        if (Mathf.Approximately(Time.timeScale, 0f))
         {
-            continueButtonBackground = continueButton.GetComponent<Image>();
-        }
-        if (quitButtonBackground == null && quitButton != null)
-        {
-            quitButtonBackground = quitButton.GetComponent<Image>();
+            Time.timeScale = 1f;
         }
         
-        
-        if (mainMenuFont != null)
-        {
-            if (continueButton != null)
-            {
-                var txt = continueButton.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
-                if (txt != null) txt.font = mainMenuFont;
-            }
-
-            if (quitButton != null)
-            {
-                var txt = quitButton.GetComponentInChildren<TMPro.TextMeshProUGUI>(true);
-                if (txt != null) txt.font = mainMenuFont;
-            }
-        }
-
-        
-        Texture2D buttonGrungeTexture = Resources.Load<Texture2D>("Dark UI/Textures/Grunge/Background 3");
-        if (buttonGrungeTexture != null)
-        {
-            Sprite grungeSprite = Sprite.Create(
-                buttonGrungeTexture,
-                new Rect(0, 0, buttonGrungeTexture.width, buttonGrungeTexture.height),
-                new Vector2(0.5f, 0.5f));
-
-            if (continueButtonBackground != null)
-            {
-                continueButtonBackground.sprite = grungeSprite;
-                continueButtonBackground.type = Image.Type.Sliced;
-                continueButtonBackground.color = Color.white;
-            }
-
-            if (quitButtonBackground != null)
-            {
-                quitButtonBackground.sprite = grungeSprite;
-                quitButtonBackground.type = Image.Type.Sliced;
-                quitButtonBackground.color = Color.white;
-            }
-        }
-
-
-        SetupBlurEffect();
-
+        isPaused = false;
     }
 
     void CreatePauseUI()
     {
-
     }
 
     void FindPlayers()
     {
-
-        
         if (!findPlayersAutomatically) 
         {
-
             return;
         }
 
         GameObject player1 = GameObject.FindGameObjectWithTag("Player1");
         GameObject player2 = GameObject.FindGameObjectWithTag("Player2");
         
-
-
         if (player1 != null)
         {
             player1Input = player1.GetComponent<PlayerInput>();
             if (player1Input != null)
             {
-
                 ConnectPlayerPauseAction(player1Input, "Player1");
             }
-            else
-            {
-
-            }
-        }
-        else
-        {
-
         }
 
         if (player2 != null)
@@ -276,29 +187,18 @@ public class PauseController : MonoBehaviour
             player2Input = player2.GetComponent<PlayerInput>();
             if (player2Input != null)
             {
-
                 ConnectPlayerPauseAction(player2Input, "Player2");
             }
-            else
-            {
-
-            }
         }
-        else
-        {
-
-        }
-        
-
     }
+
+    private InputAction p1PauseAction;
+    private InputAction p2PauseAction;
 
     void ConnectPlayerPauseAction(PlayerInput playerInput, string playerName)
     {
-
-        
         if (playerInput.actions != null)
         {
-            
             InputAction pauseAction = playerInput.actions["PauseToggle"];
             
             if (pauseAction == null) pauseAction = playerInput.actions["Pause"];
@@ -308,29 +208,11 @@ public class PauseController : MonoBehaviour
             
             if (pauseAction != null)
             {
+                if (playerName == "Player1") p1PauseAction = pauseAction;
+                else if (playerName == "Player2") p2PauseAction = pauseAction;
 
                 pauseAction.performed += OnPausePressed;
-
-
             }
-            else
-            {
-
-                
-                
-                string availableActions = "";
-                foreach (var action in playerInput.actions)
-                {
-                    availableActions += action.name + ", ";
-                }
-                
-
-
-            }
-        }
-        else
-        {
-
         }
     }
     
@@ -373,30 +255,21 @@ public class PauseController : MonoBehaviour
         if (continueButton != null)
         {
             continueButton.onClick.AddListener(OnContinueButtonClicked);
-            
-            
             AddButtonHoverEvents(continueButton, 0);
-
-        }
-        else
-        {
-
         }
 
         if (quitButton != null)
         {
             quitButton.onClick.AddListener(OnQuitButtonClicked);
-            
-            
-            AddButtonHoverEvents(quitButton, 1);
-
+            AddButtonHoverEvents(quitButton, 2);
         }
-        else
-        {
-
-        }
-
         
+        if (controlsButton != null)
+        {
+            controlsButton.onClick.AddListener(OnControlsButtonClicked);
+            AddButtonHoverEvents(controlsButton, 1);
+        }
+
         SetupPauseButtonsArray();
     }
     
@@ -404,23 +277,21 @@ public class PauseController : MonoBehaviour
     {
         if (button == null) return;
         
-        
         ButtonHoverHandler hoverHandler = button.gameObject.GetComponent<ButtonHoverHandler>();
         if (hoverHandler == null)
         {
             hoverHandler = button.gameObject.AddComponent<ButtonHoverHandler>();
         }
         
-        
         hoverHandler.SetupHover(button, this, buttonIndex);
     }
 
     void SetupPauseButtonsArray()
     {
-        pauseButtons = new Button[2];
+        pauseButtons = new Button[3];
         pauseButtons[0] = continueButton;
-        pauseButtons[1] = quitButton;
-        
+        pauseButtons[1] = controlsButton;
+        pauseButtons[2] = quitButton;
         
         var validButtons = new System.Collections.Generic.List<Button>();
         foreach (Button button in pauseButtons)
@@ -431,7 +302,6 @@ public class PauseController : MonoBehaviour
             }
         }
         pauseButtons = validButtons.ToArray();
-        
 
         if (pauseButtons.Length > 0)
         {
@@ -440,39 +310,49 @@ public class PauseController : MonoBehaviour
             HighlightButton(currentButtonIndex);
         }
     }
-
-    void HighlightButton(int index)
+    
+void HighlightButton(int index)
     {
         if (pauseButtons == null || pauseButtons.Length == 0) return;
         
-        
         if (index < 0 || index >= pauseButtons.Length) return;
         
-        
+        if (pauseButtons[index] == null)
+        {
+            return;
+        }
+
         int oldIndex = currentButtonIndex;
         previousButtonIndex = currentButtonIndex;
         currentButtonIndex = index;
         
-        
-        pauseButtons[index].Select();
-        if (EventSystem.current != null)
+        try 
         {
-            EventSystem.current.SetSelectedGameObject(pauseButtons[index].gameObject);
+            pauseButtons[index].Select();
+            if (EventSystem.current != null)
+            {
+                EventSystem.current.SetSelectedGameObject(pauseButtons[index].gameObject);
+            }
+        }
+        catch (System.Exception e)
+        {
+
         }
         
         
-        ApplyButtonHighlight(pauseButtons[index], true);
+        for (int i = 0; i < pauseButtons.Length; i++)
+        {
+            if (pauseButtons[i] != null)
+            {
+                
+                ApplyButtonHighlight(pauseButtons[i], i == index);
+            }
+        }
 
         
         if (oldIndex != currentButtonIndex)
         {
             PlayHoverSound();
-        }
-        
-        
-        if (previousButtonIndex >= 0 && previousButtonIndex < pauseButtons.Length && previousButtonIndex != index)
-        {
-            ApplyButtonHighlight(pauseButtons[previousButtonIndex], false);
         }
     }
     
@@ -480,35 +360,86 @@ public class PauseController : MonoBehaviour
     {
         if (button == null) return;
         
+        Image[] images = button.GetComponentsInChildren<Image>();
+        Text[] texts = button.GetComponentsInChildren<Text>();
         
-        ColorBlock colors = button.colors;
-        if (isHighlighted)
-        {
-            colors.normalColor = highlightedColor;
-            colors.highlightedColor = highlightedColor;
-        }
-        else
-        {
-            colors.normalColor = normalColor;
-            colors.highlightedColor = normalColor;
-        }
-        button.colors = colors;
+        System.Collections.Generic.List<Graphic> allGraphics = new System.Collections.Generic.List<Graphic>();
+        allGraphics.AddRange(images);
+        allGraphics.AddRange(texts);
+        
+        StartCoroutine(SmoothOpacityTransition(allGraphics.ToArray(), isHighlighted ? 1f : 0.5f, 0.3f));
+    }
 
+    System.Collections.IEnumerator SmoothOpacityTransition(Graphic[] graphics, float targetOpacity, float duration = 0.3f)
+    {
+        if (graphics == null || graphics.Length == 0) yield break;
         
-        RectTransform rt = button.transform as RectTransform;
-        if (rt != null)
+        float startTime = Time.unscaledTime;
+        float startOpacity = graphics[0].color.a;
+        
+        while (Time.unscaledTime - startTime < duration)
         {
-            rt.localScale = isHighlighted ? Vector3.one * highlightedScale : Vector3.one * normalScale;
+            float elapsed = Time.unscaledTime - startTime;
+            float newOpacity = Mathf.Lerp(startOpacity, targetOpacity, elapsed / duration);
+            
+            foreach (Graphic graphic in graphics)
+            {
+                if (graphic != null)
+                {
+                    Color color = graphic.color;
+                    color.a = newOpacity;
+                    graphic.color = color;
+                }
+            }
+            
+            yield return null;
+        }
+        
+        foreach (Graphic graphic in graphics)
+        {
+            if (graphic != null)
+            {
+                Color color = graphic.color;
+                color.a = targetOpacity;
+                graphic.color = color;
+            }
+        }
+    }
+
+    void SetInputBlocked(bool blocked)
+    {
+        if (pausePanelCanvasGroup != null)
+        {
+            pausePanelCanvasGroup.interactable = !blocked;
+            pausePanelCanvasGroup.blocksRaycasts = !blocked;
+        }
+        
+        if (controlsCanvasGroup != null)
+        {
+            controlsCanvasGroup.interactable = !blocked;
+            controlsCanvasGroup.blocksRaycasts = !blocked;
+        }
+    }
+
+    public void OnContinueButtonPressed(InputAction.CallbackContext context)
+    {
+        if (!context.performed) return;
+        
+        if (blockInputDuringTransition && isTransitioning)
+        {
+            return;
+        }
+        
+        if (isPaused && pausePanel != null && pausePanel.activeSelf)
+        {
+            TogglePause();
         }
     }
     
     System.Collections.IEnumerator FadeCanvasGroup(CanvasGroup canvasGroup, float startAlpha, float endAlpha, float duration)
     {
-
-        
         if (canvasGroup == null) 
         {
-
             yield break;
         }
         
@@ -524,7 +455,6 @@ public class PauseController : MonoBehaviour
         }
         
         canvasGroup.alpha = endAlpha;
-
     }
     
     void RestoreAllButtons()
@@ -535,25 +465,16 @@ public class PauseController : MonoBehaviour
         {
             if (pauseButtons[i] != null)
             {
-                
                 ColorBlock colors = pauseButtons[i].colors;
                 colors.normalColor = normalColor;
                 colors.highlightedColor = normalColor;
                 pauseButtons[i].colors = colors;
-
-                    
-                    RectTransform rt = pauseButtons[i].transform as RectTransform;
-                    if (rt != null)
-                    {
-                        rt.localScale = Vector3.one * normalScale;
-                    }
             }
         }
         
         currentButtonIndex = 0;
         previousButtonIndex = -1;
     }
-    
     
     public void SetHoveredButton(int buttonIndex)
     {
@@ -563,22 +484,68 @@ public class PauseController : MonoBehaviour
             HighlightButton(buttonIndex);
         }
     }
-    
-    
-    public bool IsPaused()
-    {
-        return isPaused;
-    }
 
-    void OnPausePressed(InputAction.CallbackContext context)
+public void OnPausePressed(InputAction.CallbackContext context)
     {
-
+        if (!context.performed) return;
+        
+        
+        if (blockInputDuringTransition && isTransitioning)
+        {
+            return;
+        }
+        
+        
+        if (controlsCanvas != null && controlsCanvas.activeSelf)
+        {
+            OnBackButtonClicked();
+            return;
+        }
+        
+        
+        if (isPaused && pausePanel != null && pausePanelCanvasGroup != null && pausePanelCanvasGroup.alpha > 0)
+        {
+            OnContinueButtonClicked();
+            return;
+        }
+        
+        
+        if (preventOverlap && IsAnyMenuActive() && !isPaused)
+        {
+            return;
+        }
+        
+        
         TogglePause();
+    }
+    
+    bool IsAnyMenuActive()
+    {
+        return (controlsCanvasGroup != null && controlsCanvasGroup.alpha > 0) ||
+               (pausePanelCanvasGroup != null && pausePanelCanvasGroup.alpha > 0 && isPaused);
+    }
+    
+    bool CanPauseGame()
+    {
+        if (Time.timeScale == 0f && !isPaused)
+        {
+            return false;
+        }
+        
+        if (IsAnyMenuActive())
+        {
+            return false;
+        }
+        
+        return true;
     }
 
     public void TogglePause()
     {
-
+        if (isTransitioning)
+        {
+            return;
+        }
         
         if (isPaused)
         {
@@ -590,13 +557,17 @@ public class PauseController : MonoBehaviour
         }
     }
 
+public bool IsPaused() { return isPaused; }
+
+public void ShowPauseMenuFromControls() { StartCoroutine(TransitionToPause()); }
+
+
+    
     public void PauseGame()
     {
-
         Time.timeScale = 0f;
         isPaused = true;
         ShowPausePanel();
-
     }
 
     public void ResumeGame()
@@ -604,105 +575,71 @@ public class PauseController : MonoBehaviour
         Time.timeScale = 1f;
         isPaused = false;
         HidePausePanel();
-
     }
 
-    void ShowPausePanel()
+void ShowPausePanel()
     {
-
-        
-        
-
-
-
-
-
-        
+        if (pausePanel != null)
+        {
+            pausePanel.SetActive(true);
+        }
         
         if (pausePanelCanvasGroup != null)
         {
             pausePanelCanvasGroup.alpha = 1f;
             pausePanelCanvasGroup.interactable = true;
             pausePanelCanvasGroup.blocksRaycasts = true;
-
         }
-        else
-        {
-
-        }
-        
-        
-        if (pauseText != null)
-        {
-            pauseText.gameObject.SetActive(true);
-
-        }
-        else
-        {
-
-        }
-
         
         
         canNavigate = true;
         currentButtonIndex = 0;
+        
+        
         if (pauseButtons != null && pauseButtons.Length > 0)
         {
+            for (int i = 0; i < pauseButtons.Length; i++)
+            {
+                if (pauseButtons[i] != null)
+                {
+                    ApplyButtonHighlight(pauseButtons[i], i == currentButtonIndex);
+                }
+            }
             HighlightButton(currentButtonIndex);
         }
         
-        
         EnableBlur();
         
-
+        if (audioSource != null && hoverSound != null)
+        {
+            audioSource.PlayOneShot(hoverSound, soundVolume);
+        }
     }
     
     System.Collections.IEnumerator FadeInPanel()
     {
-
-        
         if (pausePanelCanvasGroup != null)
         {
             pausePanelCanvasGroup.alpha = 0f;
             pausePanelCanvasGroup.interactable = false;
             pausePanelCanvasGroup.blocksRaycasts = false;
             
-
             yield return StartCoroutine(FadeCanvasGroup(pausePanelCanvasGroup, 0f, 1f, fadeTransitionSpeed));
             
             pausePanelCanvasGroup.interactable = true;
             pausePanelCanvasGroup.blocksRaycasts = true;
-            
-
-        }
-        else
-        {
-
         }
     }
 
     void HidePausePanel()
     {
-
-        
         if (pausePanelCanvasGroup != null)
         {
             pausePanelCanvasGroup.alpha = 0f;
             pausePanelCanvasGroup.interactable = false;
             pausePanelCanvasGroup.blocksRaycasts = false;
-
-        }
-        else
-        {
-
         }
         
-        if (pauseText != null)
-        {
-            pauseText.gameObject.SetActive(false);
-
-        }
-
         if (EventSystem.current != null)
         {
             EventSystem.current.SetSelectedGameObject(null);
@@ -711,399 +648,483 @@ public class PauseController : MonoBehaviour
         canNavigate = false;
         RestoreAllButtons();
         
-        
         DisableBlur();
-        
     }
-    
-    System.Collections.IEnumerator FadeOutAndHidePanel()
+
+    void SetupPauseUI()
+    {
+        SetupCanvasGroups();
+        SetupButtonReferences();
+        ApplyConsistentButtonStyling();
+        SetupBlurEffect();
+    }
+
+void EnsureControlsImageSetup()
     {
         
-        yield return StartCoroutine(FadeCanvasGroup(pausePanelCanvasGroup, pausePanelCanvasGroup.alpha, 0f, fadeTransitionSpeed));
-        
-        
-        if (pausePanelCanvasGroup != null)
+        if (controlsDisplayImage != null)
         {
-            pausePanelCanvasGroup.interactable = false;
-            pausePanelCanvasGroup.blocksRaycasts = false;
-        }
-        
-        if (pauseText != null)
-        {
-            pauseText.gameObject.SetActive(false);
+            
+            RectTransform rectTransform = controlsDisplayImage.GetComponent<RectTransform>();
+            if (rectTransform != null)
+            {
+                
+                rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+                rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+                rectTransform.pivot = new Vector2(0.5f, 0.5f);
+                
+                
+                rectTransform.anchoredPosition = Vector2.zero;
+                
+                
+                rectTransform.sizeDelta = new Vector2(1200f, 800f);
+                
+                
+                rectTransform.localScale = Vector3.one;
+            }
+            
+            
+            controlsDisplayImage.gameObject.SetActive(false);
         }
     }
 
-    void OnContinueButtonClicked()
+
+    void SetupCanvasGroups()
+    {
+        if (pausePanel != null && pausePanelCanvasGroup == null)
+        {
+            pausePanelCanvasGroup = pausePanel.GetComponent<CanvasGroup>();
+            if (pausePanelCanvasGroup == null)
+            {
+                pausePanelCanvasGroup = pausePanel.AddComponent<CanvasGroup>();
+            }
+        }
+        
+        if (controlsCanvas != null && controlsCanvasGroup == null)
+        {
+            controlsCanvasGroup = controlsCanvas.GetComponent<CanvasGroup>();
+            if (controlsCanvasGroup == null)
+            {
+                controlsCanvasGroup = controlsCanvas.AddComponent<CanvasGroup>();
+            }
+        }
+    }
+
+    void SetupButtonReferences()
+    {
+        if (pausePanel != null)
+        {
+            if (continueButton == null)
+            {
+                Transform continueTransform = pausePanel.transform.Find("CONTINUE");
+                if (continueTransform != null)
+                {
+                    continueButton = continueTransform.GetComponent<Button>();
+                }
+            }
+            
+            if (controlsButton == null)
+            {
+                Transform controlsTransform = pausePanel.transform.Find("CONTROLS");
+                if (controlsTransform != null)
+                {
+                    controlsButton = controlsTransform.GetComponent<Button>();
+                }
+            }
+            
+            if (quitButton == null)
+            {
+                Transform quitTransform = pausePanel.transform.Find("QUIT");
+                if (quitTransform != null)
+                {
+                    quitButton = quitTransform.GetComponent<Button>();
+                }
+            }
+        }
+        
+        if (controlsCanvas != null && backButton == null)
+        {
+            Transform backTransform = controlsCanvas.transform.Find("BACK");
+            if (backTransform != null)
+            {
+                backButton = backTransform.GetComponent<Button>();
+            }
+        }
+    }
+
+    void ApplyConsistentButtonStyling()
+    {
+        if (continueButton != null && continueButtonBackground != null)
+        {
+            SetupButtonVisuals(continueButton, continueButtonBackground, "CONTINUE");
+        }
+        
+        if (controlsButton != null && controlsButtonBackground != null)
+        {
+            SetupButtonVisuals(controlsButton, controlsButtonBackground, "CONTROLS");
+        }
+        
+        if (quitButton != null && quitButtonBackground != null)
+        {
+            SetupButtonVisuals(quitButton, quitButtonBackground, "QUIT");
+        }
+    }
+    
+    void SetupButtonVisuals(Button button, Image background, string buttonText)
+    {
+        if (button == null) return;
+        
+        var buttonTextComponent = button.GetComponentInChildren<Text>();
+        if (buttonTextComponent != null)
+        {
+            buttonTextComponent.text = buttonText;
+            buttonTextComponent.color = normalColor;
+            buttonTextComponent.fontSize = 24;
+        }
+        
+        if (background != null)
+        {
+            background.color = new Color(0.2f, 0.2f, 0.2f, 0.8f);
+            background.raycastTarget = true;
+        }
+        
+        var buttonColors = button.colors;
+        buttonColors.normalColor = new Color(1f, 1f, 1f, 0.8f);
+        buttonColors.highlightedColor = new Color(1f, 0.2f, 0.2f, 0.3f);
+        buttonColors.pressedColor = new Color(0.8f, 0.1f, 0.1f, 0.5f);
+        buttonColors.selectedColor = new Color(1f, 0.3f, 0.3f, 0.4f);
+        button.colors = buttonColors;
+        
+        ApplyButtonHighlight(button, false);
+    }
+
+    void SetupBlurEffect()
+    {
+        if (blurVolume != null)
+        {
+            blurVolume.profile.TryGet(out depthOfField);
+            if (depthOfField != null)
+            {
+                depthOfField.active = false;
+            }
+        }
+    }
+
+    void EnableBlur()
+    {
+        if (depthOfField != null)
+        {
+            depthOfField.active = true;
+            depthOfField.focalLength.value = blurIntensity;
+        }
+    }
+
+    void DisableBlur()
+    {
+        if (depthOfField != null)
+        {
+            depthOfField.active = false;
+        }
+    }
+
+    public void OnContinueButtonClicked()
     {
         PlayClickSound();
         ResumeGame();
     }
 
-    void OnQuitButtonClicked()
+    public void OnQuitButtonClicked()
     {
         PlayClickSound();
+        Application.Quit();
         #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-        #else
-            Application.Quit();
+        UnityEditor.EditorApplication.isPlaying = false;
         #endif
     }
 
-void Update()
+    public void OnControlsButtonClicked()
     {
-        
-        if (Application.isEditor || Debug.isDebugBuild)
-        {
-            if (Keyboard.current != null && (Keyboard.current.escapeKey.wasPressedThisFrame || Keyboard.current.pKey.wasPressedThisFrame))
-            {
-                TogglePause();
-            }
-        }
+        PlayClickSound();
+        StartCoroutine(TransitionToControls());
+    }
 
-        if (!isPaused || !canNavigate || pauseButtons == null || pauseButtons.Length == 0) return;
-        
-        
-        float verticalInput = 0f;
-        
-        
-        
-        if (player1Input != null && player1Input.actions != null)
-        {
-            var moveAction = FindMoveAction(player1Input);
-            if (moveAction != null && moveAction.enabled)
-            {
-                Vector2 moveInput = moveAction.ReadValue<Vector2>();
-                if (Mathf.Abs(moveInput.y) > navigationThreshold) verticalInput = moveInput.y;
-            }
-        }
-        
-        if (verticalInput == 0f && player2Input != null && player2Input.actions != null)
-        {
-            var moveAction = FindMoveAction(player2Input);
-            if (moveAction != null && moveAction.enabled)
-            {
-                Vector2 moveInput = moveAction.ReadValue<Vector2>();
-                if (Mathf.Abs(moveInput.y) > navigationThreshold) verticalInput = moveInput.y;
-            }
-        }
+    public void OnBackButtonClicked()
+    {
+        PlayClickSound();
+        StartCoroutine(TransitionToPause());
+    }
 
+System.Collections.IEnumerator TransitionToControls()
+    {
+        isTransitioning = true;
+        if (blockInputDuringTransition) SetInputBlocked(true);
         
-        if (verticalInput == 0f)
+        float duration = Mathf.Min(transitionDuration, 0.5f);
+        
+        
+        float elapsedTime = 0f;
+        while (elapsedTime < duration)
         {
-            foreach (var gamepad in Gamepad.all)
-            {
-                float y = gamepad.leftStick.y.ReadValue();
-                if (Mathf.Abs(y) > navigationThreshold) { verticalInput = y; break; }
-                
-                float dpadY = gamepad.dpad.y.ReadValue();
-                if (Mathf.Abs(dpadY) > navigationThreshold) { verticalInput = dpadY; break; }
-            }
+            elapsedTime += Time.unscaledDeltaTime;
+            float alpha = Mathf.Lerp(1f, 0f, elapsedTime / duration);
+            if (pausePanelCanvasGroup != null) pausePanelCanvasGroup.alpha = alpha;
+            yield return null;
+        }
+        
+        if (pausePanel != null) pausePanel.SetActive(false);
+        
+        
+        if (controlsDisplayImage != null)
+        {
+            controlsDisplayImage.gameObject.SetActive(true);
+        }
+        
+        if (controlsCanvas != null) controlsCanvas.SetActive(true);
+        if (controlsCanvasGroup != null) 
+        {
+            controlsCanvasGroup.alpha = 0f;
+            controlsCanvasGroup.interactable = true;
+            controlsCanvasGroup.blocksRaycasts = true;
         }
         
         
-        if (Mathf.Abs(verticalInput) > navigationThreshold && Time.unscaledTime - lastNavigationTime > navigationCooldown)
+        elapsedTime = 0f;
+        while (elapsedTime < duration)
         {
-            
-            if (verticalInput > 0f) 
+            elapsedTime += Time.unscaledDeltaTime;
+            float alpha = Mathf.Lerp(0f, 1f, elapsedTime / duration);
+            if (controlsCanvasGroup != null) controlsCanvasGroup.alpha = alpha;
+            yield return null;
+        }
+        
+        if (controlsCanvasGroup != null) controlsCanvasGroup.alpha = 1f;
+        
+        SelectControlsFirstButton();
+        isTransitioning = false;
+        if (blockInputDuringTransition) SetInputBlocked(false);
+    }
+
+System.Collections.IEnumerator TransitionToPause()
+    {
+        isTransitioning = true;
+        if (blockInputDuringTransition) SetInputBlocked(true);
+        
+        float duration = Mathf.Min(transitionDuration, 0.5f);
+        
+        
+        float elapsedTime = 0f;
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.unscaledDeltaTime;
+            float alpha = Mathf.Lerp(1f, 0f, elapsedTime / duration);
+            if (controlsCanvasGroup != null) controlsCanvasGroup.alpha = alpha;
+            yield return null;
+        }
+        
+        
+        if (controlsDisplayImage != null)
+        {
+            controlsDisplayImage.gameObject.SetActive(false);
+        }
+        
+        if (controlsCanvas != null) controlsCanvas.SetActive(false);
+        if (pausePanel != null) pausePanel.SetActive(true);
+        if (pausePanelCanvasGroup != null) 
+        {
+            pausePanelCanvasGroup.alpha = 0f;
+            pausePanelCanvasGroup.interactable = true;
+            pausePanelCanvasGroup.blocksRaycasts = true;
+        }
+        
+        
+        elapsedTime = 0f;
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.unscaledDeltaTime;
+            float alpha = Mathf.Lerp(0f, 1f, elapsedTime / duration);
+            if (pausePanelCanvasGroup != null) pausePanelCanvasGroup.alpha = alpha;
+            yield return null;
+        }
+        
+        if (pausePanelCanvasGroup != null) pausePanelCanvasGroup.alpha = 1f;
+        
+        SelectPauseFirstButton();
+        isTransitioning = false;
+        if (blockInputDuringTransition) SetInputBlocked(false);
+    }
+
+    void SelectControlsFirstButton()
+    {
+        if (backButton != null)
+        {
+            backButton.Select();
+            if (EventSystem.current != null)
+            {
+                EventSystem.current.SetSelectedGameObject(backButton.gameObject);
+            }
+        }
+    }
+
+    void SelectPauseFirstButton()
+    {
+        if (continueButton != null)
+        {
+            continueButton.Select();
+            if (EventSystem.current != null)
+            {
+                EventSystem.current.SetSelectedGameObject(continueButton.gameObject);
+            }
+            currentButtonIndex = 0;
+            HighlightButton(currentButtonIndex);
+        }
+    }
+
+    void Update()
+    {
+        if (canNavigate && pauseButtons != null && pauseButtons.Length > 0)
+        {
+            HandleGamepadNavigation();
+        }
+        
+        if (controlsCanvas != null && controlsCanvas.activeSelf)
+        {
+            HandleControlsCanvasInput();
+        }
+    }
+
+void HandleGamepadNavigation()
+    {
+        if (Time.unscaledTime - lastNavigationTime < navigationCooldown) return;
+        if (isTransitioning) return;
+        
+        Gamepad gamepad = Gamepad.current;
+        if (gamepad == null) return;
+        
+        
+        float verticalInput = gamepad.leftStick.y.ReadValue();
+        
+        
+        bool dpadUp = gamepad.dpad.up.isPressed;
+        bool dpadDown = gamepad.dpad.down.isPressed;
+        
+        if (Mathf.Abs(verticalInput) > navigationThreshold || dpadUp || dpadDown)
+        {
+            if (verticalInput > navigationThreshold || dpadUp)
             {
                 NavigateUp();
             }
-            
-            else if (verticalInput < 0f) 
+            else if (verticalInput < -navigationThreshold || dpadDown)
             {
                 NavigateDown();
             }
-            
             lastNavigationTime = Time.unscaledTime;
         }
         
         
-        HandleButtonSelection();
+        if (gamepad.buttonSouth.wasPressedThisFrame)
+        {
+            if (pauseButtons != null && currentButtonIndex >= 0 && currentButtonIndex < pauseButtons.Length)
+            {
+                Button selectedButton = pauseButtons[currentButtonIndex];
+                if (selectedButton != null)
+                {
+                    selectedButton.onClick.Invoke();
+                }
+            }
+        }
     }
-    
+
     void NavigateUp()
     {
         if (pauseButtons == null || pauseButtons.Length == 0) return;
         
-        currentButtonIndex--;
-        if (currentButtonIndex < 0)
+        int newIndex = currentButtonIndex - 1;
+        if (newIndex < 0) newIndex = pauseButtons.Length - 1;
+        
+        while (newIndex != currentButtonIndex && pauseButtons[newIndex] == null)
         {
-            currentButtonIndex = pauseButtons.Length - 1; 
+            newIndex--;
+            if (newIndex < 0) newIndex = pauseButtons.Length - 1;
         }
         
-        HighlightButton(currentButtonIndex);
+        if (pauseButtons[newIndex] != null)
+        {
+            HighlightButton(newIndex);
+        }
     }
-    
+
     void NavigateDown()
     {
         if (pauseButtons == null || pauseButtons.Length == 0) return;
         
-        currentButtonIndex++;
-        if (currentButtonIndex >= pauseButtons.Length)
+        int newIndex = currentButtonIndex + 1;
+        if (newIndex >= pauseButtons.Length) newIndex = 0;
+        
+        while (newIndex != currentButtonIndex && pauseButtons[newIndex] == null)
         {
-            currentButtonIndex = 0; 
+            newIndex++;
+            if (newIndex >= pauseButtons.Length) newIndex = 0;
         }
         
-        HighlightButton(currentButtonIndex);
+        if (pauseButtons[newIndex] != null)
+        {
+            HighlightButton(newIndex);
+        }
     }
-    
-    void HandleButtonSelection()
-    {
-        bool submitPressed = false;
-        
-        
-        if (player1Input != null && player1Input.actions != null)
-        {
-            var submitAction = player1Input.actions["Submit"];
-            if (submitAction != null && submitAction.WasPressedThisFrame())
-            {
-                submitPressed = true;
-            }
-        }
-        
-        
-        if (!submitPressed && player2Input != null && player2Input.actions != null)
-        {
-            var submitAction = player2Input.actions["Submit"];
-            if (submitAction != null && submitAction.WasPressedThisFrame())
-            {
-                submitPressed = true;
-            }
-        }
 
+void HandleControlsCanvasInput()
+    {
+        if (isTransitioning) return;
         
-        if (!submitPressed)
-        {
-            foreach (var gamepad in Gamepad.all)
-            {
-                if (gamepad.buttonSouth.wasPressedThisFrame) { submitPressed = true; break; }
-            }
-        }
+        Gamepad gamepad = Gamepad.current;
+        Keyboard keyboard = Keyboard.current;
         
-        if (submitPressed && pauseButtons != null && currentButtonIndex >= 0 && currentButtonIndex < pauseButtons.Length)
+        bool shouldReturnToPause = false;
+        
+        
+        if (gamepad != null)
         {
             
+            if (gamepad.buttonSouth.wasPressedThisFrame || 
+                gamepad.buttonEast.wasPressedThisFrame ||  
+                gamepad.buttonWest.wasPressedThisFrame ||  
+                gamepad.buttonNorth.wasPressedThisFrame || 
+                
+                gamepad.leftShoulder.wasPressedThisFrame ||
+                gamepad.rightShoulder.wasPressedThisFrame ||
+                gamepad.leftTrigger.wasPressedThisFrame ||
+                gamepad.rightTrigger.wasPressedThisFrame ||
+                
+                gamepad.leftStickButton.wasPressedThisFrame ||
+                gamepad.rightStickButton.wasPressedThisFrame ||
+                
+                gamepad.dpad.up.wasPressedThisFrame ||
+                gamepad.dpad.down.wasPressedThisFrame ||
+                gamepad.dpad.left.wasPressedThisFrame ||
+                gamepad.dpad.right.wasPressedThisFrame ||
+                
+                gamepad.startButton.wasPressedThisFrame ||
+                gamepad.selectButton.wasPressedThisFrame)
+            {
+                shouldReturnToPause = true;
+            }
+        }
+        
+        
+        if (keyboard != null)
+        {
+            if (keyboard.escapeKey.wasPressedThisFrame || 
+                keyboard.spaceKey.wasPressedThisFrame ||
+                keyboard.enterKey.wasPressedThisFrame)
+            {
+                shouldReturnToPause = true;
+            }
+        }
+        
+        if (shouldReturnToPause)
+        {
             PlayClickSound();
-            pauseButtons[currentButtonIndex].onClick.Invoke();
+            OnBackButtonClicked();
         }
-    }
-
-    
-    InputAction FindMoveAction(PlayerInput input)
-    {
-        if (input == null || input.actions == null) return null;
-
-        
-        var move = input.actions["Move"];
-        if (move != null) return move;
-
-        
-        foreach (var action in input.actions)
-        {
-            if (action == null) continue;
-            if (action.expectedControlType != null && !action.expectedControlType.Contains("Vector2")) continue;
-
-            string nameLower = action.name.ToLowerInvariant();
-            if (nameLower.Contains("move") || nameLower.Contains("navigation") || nameLower.Contains("navigate"))
-            {
-                return action;
-            }
-        }
-
-        return null;
-    }
-
-    void OnDisable()
-    {
-        if (player1Input != null && player1Input.actions != null)
-        {
-            var pauseAction = player1Input.actions["PauseToggle"];
-            if (pauseAction != null)
-            {
-                pauseAction.performed -= OnPausePressed;
-            }
-        }
-
-        if (player2Input != null && player2Input.actions != null)
-        {
-            var pauseAction = player2Input.actions["PauseToggle"];
-            if (pauseAction != null)
-            {
-                pauseAction.performed -= OnPausePressed;
-            }
-        }
-
-        if (continueButton != null)
-        {
-            continueButton.onClick.RemoveListener(OnContinueButtonClicked);
-        }
-
-        if (quitButton != null)
-        {
-            quitButton.onClick.RemoveListener(OnQuitButtonClicked);
-        }
-    }
-
-    void SetupBlurEffect()
-    {
-
-        
-        if (blurVolume == null)
-        {
-            
-            GameObject volumeObj = GameObject.Find("Global Volume");
-            if (volumeObj != null)
-            {
-                blurVolume = volumeObj.GetComponent<Volume>();
-
-            }
-            else
-            {
-
-                return;
-            }
-        }
-
-        if (blurVolume != null && blurVolume.profile != null)
-        {
-            
-            if (blurVolume.profile.TryGet(out depthOfField))
-            {
-
-                
-                
-                depthOfField.active = false; 
-                depthOfField.mode.overrideState = true;
-                depthOfField.mode.value = DepthOfFieldMode.Bokeh;
-                
-                depthOfField.focusDistance.overrideState = true;
-                depthOfField.focusDistance.value = blurIntensity;
-                
-                depthOfField.aperture.overrideState = true;
-                depthOfField.aperture.value = blurIntensity / 10f;
-                
-                depthOfField.focalLength.overrideState = true;
-                depthOfField.focalLength.value = 50f;
-                
-
-            }
-            else
-            {
-                
-                if (blurVolume.profile != null)
-                {
-                    depthOfField = blurVolume.profile.Add<DepthOfField>();
-                    if (depthOfField != null)
-                    {
-                        depthOfField.active = false;
-                        depthOfField.mode.overrideState = true;
-                        depthOfField.mode.value = DepthOfFieldMode.Bokeh;
-                        depthOfField.focusDistance.overrideState = true;
-                        depthOfField.focusDistance.value = blurIntensity;
-                        depthOfField.aperture.overrideState = true;
-                        depthOfField.aperture.value = blurIntensity / 10f;
-                        depthOfField.focalLength.overrideState = true;
-                        depthOfField.focalLength.value = 50f;
-                    }
-                }
-            }
-        }
-        else
-        {
-
-        }
-        
-
-    }
-
-    public void EnableBlur()
-    {
-
-        
-        if (depthOfField != null)
-        {
-            depthOfField.active = true;
-        }
-        else
-        {
-            
-            if (blurVolume != null && blurVolume.profile != null)
-            {
-                if (blurVolume.profile.TryGet(out depthOfField))
-                {
-                    depthOfField.active = true;
-                }
-            }
-        }
-        
-
-    }
-
-    public void DisableBlur()
-    {
-
-        
-        if (depthOfField != null)
-        {
-            depthOfField.active = false;
-        }
-        else
-        {
-            
-            if (blurVolume != null && blurVolume.profile != null)
-            {
-                if (blurVolume.profile.TryGet(out depthOfField))
-                {
-                    depthOfField.active = false;
-                }
-            }
-        }
-        
-
-    }
-}
-
-
-public class ButtonHoverHandler : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
-{
-    private Button button;
-    private PauseController pauseController;
-    private int buttonIndex;
-    private bool isHovered = false;
-    
-    public void SetupHover(Button btn, PauseController controller, int index)
-    {
-        button = btn;
-        pauseController = controller;
-        buttonIndex = index;
-    }
-    
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        if (pauseController != null && button != null)
-        {
-            
-            if (pauseController.IsPaused())
-            {
-                isHovered = true;
-                pauseController.SetHoveredButton(buttonIndex);
-                pauseController.PlayHoverSound();
-            }
-        }
-    }
-    
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        if (pauseController != null && button != null)
-        {
-            isHovered = false;
-            
-        }
-    }
-    
-    public bool IsHovered()
-    {
-        return isHovered;
     }
 }

@@ -135,9 +135,9 @@ public class HorrorModelVisibilityEditor : EditorWindow
         
         // Verificar componentes de protección
         HorrorModelVisibilityFix existingFix = horrorModel.GetComponent<HorrorModelVisibilityFix>();
-        HorrorRoarDebugger existingDebugger = horrorModel.GetComponent<HorrorRoarDebugger>();
+        // HorrorRoarDebugger existingDebugger = horrorModel.GetComponent<HorrorRoarDebugger>();
         
-        if (existingFix == null && existingDebugger == null)
+        if (existingFix == null) // && existingDebugger == null
         {
             result += "⚠️ No hay scripts de protección instalados.\n";
             foundIssues = true;
@@ -216,16 +216,16 @@ public class HorrorModelVisibilityEditor : EditorWindow
             Debug.Log("⚠️ HorrorModelVisibilityFix ya existe");
         }
         
-        // Agregar HorrorRoarDebugger
-        HorrorRoarDebugger debugger = horrorModel.GetComponent<HorrorRoarDebugger>();
-        if (debugger == null)
+        // // Agregar HorrorRoarDebugger
+        // HorrorRoarDebugger debugger = horrorModel.GetComponent<HorrorRoarDebugger>();
+        // if (debugger == null)
+        // {
+            // debugger = horrorModel.AddComponent<HorrorRoarDebugger>();
+            // Debug.Log("✅ Agregado HorrorRoarDebugger");
+        // }
+        // else
         {
-            debugger = horrorModel.AddComponent<HorrorRoarDebugger>();
-            Debug.Log("✅ Agregado HorrorRoarDebugger");
-        }
-        else
-        {
-            Debug.Log("⚠️ HorrorRoarDebugger ya existe");
+        //     Debug.Log("⚠️ HorrorRoarDebugger ya existe");
         }
         
         diagnosticResult = "✅ Scripts de protección agregados exitosamente!\n\nEl modelo ahora está protegido contra problemas de visibilidad durante el roar.";

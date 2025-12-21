@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using VLB;
 
@@ -323,13 +323,13 @@ public class FlashlightController_Enhanced : MonoBehaviour
     }
 
     
-    private void ToggleAllChildObjects(bool state)
+private void ToggleAllChildObjects(bool state)
     {
         
         Light[] allLights = GetComponentsInChildren<Light>(true);
         foreach (Light light in allLights)
         {
-            if (light != flashlight) 
+            if (light != null && flashlight != null && light != flashlight) 
             {
                 light.enabled = state;
             }
@@ -339,7 +339,7 @@ public class FlashlightController_Enhanced : MonoBehaviour
         Behaviour[] allBehaviours = GetComponentsInChildren<Behaviour>(true);
         foreach (Behaviour behaviour in allBehaviours)
         {
-            if (behaviour != volumetricBeam && behaviour != this)
+            if (behaviour != null && behaviour != volumetricBeam && behaviour != this)
             {
                 
                 if (behaviour.GetType().Name.Contains("Spotlight") || 
@@ -355,7 +355,10 @@ public class FlashlightController_Enhanced : MonoBehaviour
         Renderer[] allRenderers = GetComponentsInChildren<Renderer>(true);
         foreach (Renderer renderer in allRenderers)
         {
-            renderer.enabled = state;
+            if (renderer != null)
+            {
+                renderer.enabled = state;
+            }
         }
     }
 
