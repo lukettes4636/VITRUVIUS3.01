@@ -40,7 +40,7 @@ Material:
     - _AberrationAmount: 0.002
     - _IsActive: 0
     - _NoiseScale: 8.31
-    - _RoarIntensity: 0.02990515
+    - _RoarIntensity: 0.029999254
     - _RoarSpeed: 4.27
     - _VignetteStrength: 1
     m_Colors:

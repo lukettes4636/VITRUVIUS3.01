@@ -273,4 +273,13 @@ public class DoorWithKeyCard : MonoBehaviour
             CloseDoor();
         }
     }
+
+    public void ForceSetState(bool locked, bool open, bool codeEntered)
+    {
+        isLocked = locked;
+        isOpen = open;
+        codeEnteredCorrectly = codeEntered;
+        isMoving = false;
+        transform.position = open ? openPosition : closedPosition;
+    }
 }
