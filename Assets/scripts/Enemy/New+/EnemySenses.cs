@@ -16,7 +16,7 @@ public class EnemySenses : MonoBehaviour
     [Range(0.5f, 3.0f)] public float audioSensitivity = 1.0f;
     [Tooltip("Rango maximo de deteccion por sonido")]
     public float maxHearingDistance = 20f;
-    public float minDetectionRadius = 1.5f;
+    public float minDetectionRadius = 1.0f;
     [Range(0.0f, 1.0f)] public float detectionThreshold = 0.15f;
 
     [Header("Deteccion de Proximidad")]
@@ -116,10 +116,22 @@ public class EnemySenses : MonoBehaviour
             
             bool isEmittingActiveNoise = noiseRadius > idleNoiseRadius + 0.1f;
             
-            if (!isEmittingActiveNoise)
+            
+            if (dist <= minDetectionRadius)
             {
+                float strengthClose = 1f;
+                if (strengthClose > maxAudioStrength) maxAudioStrength = strengthClose;
+                if (dist < minDistance)
+                {
+                    minDistance = dist;
+                    bestTarget = target;
+                    isTargetNPC = isNPC;
+                }
                 return;
             }
+            
+            bool shouldEvaluate = isEmittingActiveNoise;
+            if (!shouldEvaluate) return;
             
             float strength = CalculateAudioStrength(target, noiseRadius, dist);
             
@@ -145,13 +157,13 @@ public class EnemySenses : MonoBehaviour
 
             if (cache.playerNoise != null)
             {
-                float effectiveRadius = Mathf.Max(cache.playerNoise.currentNoiseRadius, 1.5f);
+                float effectiveRadius = Mathf.Max(cache.playerNoise.currentNoiseRadius, minDetectionRadius);
                 float idleRadius = cache.playerNoise.idleNoiseRadius;
                 CheckTarget(cache.transform, effectiveRadius, idleRadius, false);
             }
             else
             {
-                CheckTarget(cache.transform, 2.0f, 0f, false);
+                CheckTarget(cache.transform, minDetectionRadius, 0f, false);
             }
         }
 
@@ -162,13 +174,13 @@ public class EnemySenses : MonoBehaviour
 
             if (cache.npcNoise != null)
             {
-                float effectiveRadius = Mathf.Max(cache.npcNoise.currentNoiseRadius, 1.5f);
+                float effectiveRadius = Mathf.Max(cache.npcNoise.currentNoiseRadius, minDetectionRadius);
                 float idleRadius = cache.npcNoise.idleNoiseRadius;
                 CheckTarget(cache.transform, effectiveRadius, idleRadius, true);
             }
             else
             {
-                CheckTarget(cache.transform, 2.0f, 0f, true);
+                CheckTarget(cache.transform, minDetectionRadius, 0f, true);
             }
         }
 
@@ -197,7 +209,9 @@ public class EnemySenses : MonoBehaviour
                 }
             }
             
-            if (stillMakingNoise)
+            
+            bool isUltraClose = minDistance <= Mathf.Max(minDetectionRadius, 0.5f);
+            if (stillMakingNoise || isUltraClose)
             {
                 if (isTargetNPC)
                 {
@@ -244,6 +258,13 @@ public class EnemySenses : MonoBehaviour
         }
     }
 
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = new Color(0f, 1f, 0f, 0.2f);
+        Gizmos.DrawWireSphere(transform.position, maxHearingDistance);
+        Gizmos.color = new Color(1f, 1f, 0f, 0.2f);
+        Gizmos.DrawWireSphere(transform.position, minDetectionRadius);
+    }
     private float CalculateAudioStrength(Transform target, float noiseRadius, float distance)
     {
         if (distance > maxHearingDistance) return 0f;

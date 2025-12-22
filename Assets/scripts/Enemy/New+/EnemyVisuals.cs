@@ -96,6 +96,7 @@ public class EnemyVisuals : MonoBehaviour
     {
         anim = GetComponent<Animator>();
         motor = GetComponent<EnemyMotor>();
+        if (anim != null) anim.applyRootMotion = false;
 
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
@@ -190,6 +191,10 @@ public class EnemyVisuals : MonoBehaviour
         isInvestigating = state;
     }
 
+    public bool IsCrawlingAnim()
+    {
+        return anim != null && anim.GetBool("isCrawling");
+    }
     
     
     

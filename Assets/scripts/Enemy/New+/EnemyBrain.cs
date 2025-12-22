@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(EnemySenses), typeof(EnemyMotor), typeof(EnemyVisuals))]
@@ -26,6 +26,11 @@ public class EnemyBrain : MonoBehaviour
     public int attackDamage = 25;
     [Tooltip("Rango de deteccion para verificar si hay objetivo cerca antes de atacar")]
     public float detectionRange = 2.5f;
+    [Tooltip("Tiempo que mantiene el foco en el objetivo tras golpear")]
+    public float postAttackFocusTime = 1.5f;
+    [Header("Acercamiento al Ataque")]
+    [Tooltip("Distancia de parada al acercarse para atacar")]
+    public float attackApproachStoppingDistance = 0.75f;
 
     [Header("Patrulla")]
     public Transform[] patrolPoints;
@@ -60,6 +65,15 @@ public class EnemyBrain : MonoBehaviour
         return senses.CurrentNoisyObject;
     }
 
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = new Color(1f, 0f, 0f, 0.25f);
+        Gizmos.DrawWireSphere(transform.position, attackRange);
+        Gizmos.color = new Color(1f, 0.5f, 0f, 0.25f);
+        Gizmos.DrawWireSphere(transform.position, detectionRange);
+        Gizmos.color = new Color(0f, 0.5f, 1f, 0.25f);
+        Gizmos.DrawWireSphere(transform.position, Mathf.Max(0.05f, attackApproachStoppingDistance));
+    }
     void Start()
     {
         senses = GetComponent<EnemySenses>();
@@ -139,6 +153,13 @@ public class EnemyBrain : MonoBehaviour
             NPCHealth npcHealth = currentTarget.GetComponent<NPCHealth>();
 
             
+            float distCT = Vector3.Distance(transform.position, currentTarget.position);
+            if (distCT <= detectionRange)
+            {
+                senses.HasTargetOfInterest = true;
+                senses.TargetPositionOfInterest = currentTarget.position;
+            }
+
             if (senses.CurrentNoisyObject != null && currentTarget == senses.CurrentNoisyObject)
             {
                 
@@ -257,7 +278,15 @@ public class EnemyBrain : MonoBehaviour
             }
 
             
-            motor.MoveTo(senses.TargetPositionOfInterest, walkSpeed, attackRange - 0.5f);
+            Transform liveTarget = GetCurrentTarget();
+            if (liveTarget != null)
+            {
+                motor.MoveTo(liveTarget.position, walkSpeed, Mathf.Max(0.05f, attackApproachStoppingDistance));
+            }
+            else
+            {
+                motor.MoveTo(senses.TargetPositionOfInterest, walkSpeed, Mathf.Max(0.05f, attackApproachStoppingDistance));
+            }
             visuals.UpdateAnimationState(false);
 
             
@@ -285,7 +314,7 @@ public class EnemyBrain : MonoBehaviour
                     }
                     
                     
-                    if (distanceToTarget <= attackRange && isTargetMakingNoise && !senses.CheckForWallInFront())
+                    if (distanceToTarget <= attackRange && !senses.CheckForWallInFront())
                     {
                         StartCoroutine(AttackTargetRoutine());
                     }
@@ -296,15 +325,22 @@ public class EnemyBrain : MonoBehaviour
         {
             
             
-            if (currentState != State.Investigating && senses.TargetPositionOfInterest != Vector3.zero)
+            Transform liveTarget = GetCurrentTarget();
+            if (liveTarget != null)
             {
-                StartCoroutine(InvestigateRoutine(senses.TargetPositionOfInterest));
+                senses.HasTargetOfInterest = true;
+                senses.TargetPositionOfInterest = liveTarget.position;
+                currentState = State.Chasing;
             }
             else if (currentState == State.Chasing)
             {
                 
                 senses.ForgetTarget();
                 StartCoroutine(ReturnToPatrolRoutine());
+            }
+            else if (currentState != State.Investigating && senses.TargetPositionOfInterest != Vector3.zero)
+            {
+                StartCoroutine(InvestigateRoutine(senses.TargetPositionOfInterest));
             }
         }
     }
@@ -398,14 +434,20 @@ public class EnemyBrain : MonoBehaviour
         
         if (!isInvestigatingStanding)
         {
-            visuals.TriggerGetUp();
-            yield return new WaitUntil(() => visuals.AnimFinishedReceived);
+        visuals.TriggerGetUp();
+        {
+            float t = 0f;
+            while (!visuals.AnimFinishedReceived && t < 2.5f) { t += Time.deltaTime; yield return null; }
+        }
         }
         
         
         visuals.TriggerRoar();
         visuals.PlayRoarSound();
-        yield return new WaitUntil(() => visuals.AnimFinishedReceived);
+        {
+            float t = 0f;
+            while (!visuals.AnimFinishedReceived && t < 3.0f) { t += Time.deltaTime; yield return null; }
+        }
         
         
         isInvestigatingStanding = true;
@@ -463,11 +505,20 @@ public class EnemyBrain : MonoBehaviour
         if (cameraController) cameraController.StartTrackingEnemy(transform);
 
         visuals.TriggerGetUp();
-        yield return new WaitUntil(() => visuals.AnimFinishedReceived);
+        {
+            float t = 0f;
+            while (!visuals.AnimFinishedReceived && t < 2.5f) { t += Time.deltaTime; yield return null; }
+        }
 
+        
+        float confirmT = 0f;
+        while (visuals.IsCrawlingAnim() && confirmT < 1.0f) { confirmT += Time.deltaTime; yield return null; }
         visuals.TriggerRoar();
         visuals.PlayRoarSound();
-        yield return new WaitUntil(() => visuals.AnimFinishedReceived);
+        {
+            float t = 0f;
+            while (!visuals.AnimFinishedReceived && t < 3.0f) { t += Time.deltaTime; yield return null; }
+        }
 
         currentState = State.Chasing;
     }
@@ -701,7 +752,10 @@ public class EnemyBrain : MonoBehaviour
         motor.Stop();
 
         visuals.TriggerToCrawl();
-        yield return new WaitUntil(() => visuals.AnimFinishedReceived);
+        {
+            float t = 0f;
+            while (!visuals.AnimFinishedReceived && t < 2.5f) { t += Time.deltaTime; yield return null; }
+        }
 
         currentState = State.Patrol;
         motor.SetAutoRotation(true);
@@ -726,12 +780,37 @@ public class EnemyBrain : MonoBehaviour
             NPCHealth nHealth = target.GetComponent<NPCHealth>();
             if (pHealth != null) pHealth.TakeDamage(attackDamage);
             if (nHealth != null) nHealth.TakeDamage(attackDamage);
+            
+            Vector3 targetPos = target.position;
+            senses.TargetPositionOfInterest = targetPos;
+            senses.HasTargetOfInterest = true;
+            if (pHealth != null) senses.SetPlayerTarget(target);
+            else if (nHealth != null) senses.SetNPCTarget(target);
         }
 
-        yield return new WaitUntil(() => visuals.AnimFinishedReceived);
+        {
+            float waitFinishT = 0f;
+            while (!visuals.AnimFinishedReceived && waitFinishT < 3.0f) { waitFinishT += Time.deltaTime; yield return null; }
+        }
         visuals.StopAttack();
 
         currentState = State.Chasing;
+        float focusT = 0f;
+        while (focusT < postAttackFocusTime)
+        {
+            focusT += Time.deltaTime;
+            Transform cur = GetCurrentTarget();
+            if (cur != null)
+            {
+                float dist = Vector3.Distance(transform.position, cur.position);
+                if (dist <= detectionRange)
+                {
+                    senses.TargetPositionOfInterest = cur.position;
+                    senses.HasTargetOfInterest = true;
+                }
+            }
+            yield return null;
+        }
         yield return new WaitForSeconds(attackCooldown);
     }
 
@@ -758,8 +837,11 @@ public class EnemyBrain : MonoBehaviour
         if (wall != null)
         {
             motor.RotateTowards(wall.transform.position);
-            visuals.TriggerAttack(3);
-            yield return new WaitUntil(() => visuals.AnimImpactReceived);
+        visuals.TriggerAttack(3);
+        {
+            float t = 0f;
+            while (!visuals.AnimImpactReceived && t < 2.0f) { t += Time.deltaTime; yield return null; }
+        }
             TryDestroyWall(wall);
         }
 
@@ -772,7 +854,6 @@ public class EnemyBrain : MonoBehaviour
     void WakeUp()
     {
         hasAwakened = true;
-        visuals.SetPassiveState(0);
 
         currentState = State.Transitioning;
         if (senses.CurrentNoisyObject != null && senses.CurrentPlayer == null && senses.CurrentNPCTarget == null)
