@@ -89,6 +89,11 @@ namespace VITRUVIUS.Menu
         {
             controlsCanvas.SetActive(true);
         }
+
+        if (mainControlsImage != null)
+        {
+            mainControlsImage.transform.localScale = new Vector3(0.65f, 0.65f, 1f);
+        }
         
         if (controlsCanvasGroup != null)
         {
@@ -108,6 +113,11 @@ namespace VITRUVIUS.Menu
         if (controlsCanvas != null)
         {
             controlsCanvas.SetActive(true);
+        }
+
+        if (mainControlsImage != null)
+        {
+            mainControlsImage.transform.localScale = new Vector3(0.65f, 0.65f, 1f);
         }
         
         if (controlsCanvasGroup != null)
