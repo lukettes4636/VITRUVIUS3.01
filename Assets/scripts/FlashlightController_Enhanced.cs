@@ -44,6 +44,10 @@ public class FlashlightController_Enhanced : MonoBehaviour
     public string animationBoolParameter = "FlashlightOn";
     [Tooltip("Tiempo de delay adicional despues de la animacion")]
     public float animationDelay = 0.1f;
+    
+    [Header("Flashlight Animation Controller")]
+    [Tooltip("Controlador de animaciones de brazo para la linterna")]
+    public FlashlightAnimationController animationController;
 
     [Header("Input Delay Settings")]
     [Tooltip("Delay entre el boton y el encendido de la luz (segundos)")]
@@ -140,6 +144,17 @@ public class FlashlightController_Enhanced : MonoBehaviour
             audioSource.playOnAwake = false;
             audioSource.spatialBlend = 0.7f;
         }
+
+        // Initialize animation controller
+        if (animationController == null)
+        {
+            animationController = GetComponent<FlashlightAnimationController>();
+        }
+        
+        if (animationController != null)
+        {
+            animationController.InitializeFromFlashlight(this, isFlashlightOn);
+        }
     }
 
     void OnEnable()
@@ -231,6 +246,20 @@ public class FlashlightController_Enhanced : MonoBehaviour
         isAnimating = true;
         PlayFlashlightSound();
         
+        // Update animation controller state
+        if (animationController != null)
+        {
+            // Flashlight animation controller integration
+            if (!isFlashlightOn)
+            {
+                animationController.OnFlashlightTurnedOn();
+            }
+            else
+            {
+                animationController.OnFlashlightTurnedOff();
+            }
+        }
+        
         if (flashlightAnimator != null && !string.IsNullOrEmpty(animationBoolParameter))
         {
             flashlightAnimator.SetBool(animationBoolParameter, !isFlashlightOn);
@@ -319,6 +348,12 @@ public class FlashlightController_Enhanced : MonoBehaviour
         isFlashlightOn = state;
         isAnimating = false;
         SetFlashlightState(state, true);
+        
+        // Force update animation controller state
+        if (animationController != null)
+        {
+            animationController.ForceUpdateState(state);
+        }
     }
 
     
