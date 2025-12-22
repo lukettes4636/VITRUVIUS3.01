@@ -319,22 +319,22 @@ public class EnemyVisuals : MonoBehaviour
     
     
 
-    public void PlayRoarSound() => PlayOneShot(roarClip);
+    public void PlayRoarSound() => PlayOneShot(roarClip, 0.7f);
 
     public void PlayAttackSound()
     {
-        PlayOneShot(attackClip);
-        PlayOneShot(secondaryAttackClip);
+        PlayOneShot(attackClip, 0.7f);
+        PlayOneShot(secondaryAttackClip, 0.7f);
     }
 
     public void PlayWallBreakSound() => PlayOneShot(wallBreakSound);
 
-    private void PlayOneShot(AudioClip clip)
+    private void PlayOneShot(AudioClip clip, float volumeScale = 1f)
     {
         if (clip != null)
         {
             audioSource.pitch = 1f;
-            audioSource.PlayOneShot(clip);
+            audioSource.PlayOneShot(clip, volumeScale);
         }
     }
 
@@ -424,7 +424,7 @@ public class EnemyVisuals : MonoBehaviour
             if (clip != null)
             {
                 audioSource.pitch = 1f + Random.Range(-pitchVariance, pitchVariance);
-                audioSource.PlayOneShot(clip);
+                audioSource.PlayOneShot(clip, 0.7f);
             }
             yield return new WaitForSeconds(interval);
         }

@@ -126,9 +126,15 @@ public class Wall_Destruction : MonoBehaviour
             {
                 // Set to use physics colliders to avoid Read/Write errors on meshes in standalone builds
                 surface.useGeometry = NavMeshCollectGeometry.PhysicsColliders;
+                
+                // Force update to ensure all colliders are properly recognized
+                surface.defaultArea = 0;
                 surface.BuildNavMesh();
             }
         }
+
+        // Force a frame delay to ensure physics updates
+        yield return null;
 
         Collider[] nearbyColliders = Physics.OverlapSphere(position, navMeshUpdateRadius);
         foreach (Collider col in nearbyColliders)

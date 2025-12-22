@@ -893,10 +893,10 @@ public class EnemyMonsterAI : MonoBehaviour
             audioSource.pitch = 1f;
 
             if (attackClip != null)
-                audioSource.PlayOneShot(attackClip);
+                audioSource.PlayOneShot(attackClip, 0.7f);
 
             if (secondaryAttackClip != null)
-                audioSource.PlayOneShot(secondaryAttackClip);
+                audioSource.PlayOneShot(secondaryAttackClip, 0.7f);
         }
     }
 
@@ -966,7 +966,7 @@ public class EnemyMonsterAI : MonoBehaviour
             if (audioSource != null && clip != null)
             {
                 audioSource.pitch = 1f + Random.Range(-pitchVariance, pitchVariance);
-                audioSource.PlayOneShot(clip);
+                audioSource.PlayOneShot(clip, 0.7f);
 
             }
             else
@@ -1027,7 +1027,7 @@ public class EnemyMonsterAI : MonoBehaviour
         if (audioSource != null && roarClip != null)
         {
             audioSource.pitch = 1f;
-            audioSource.PlayOneShot(roarClip);
+            audioSource.PlayOneShot(roarClip, 0.7f);
         }
     }
 

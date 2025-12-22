@@ -24,6 +24,11 @@ public class EnhancedGameOverManager : MonoBehaviour
     public float gameOverTextFontSize = 96f;
     public float buttonFontSize = 48f;
     
+    [Header("Texture Settings")]
+    public Texture2D textFaceTexture;
+    public bool useTextTexture = true;
+    public Vector2 textureScale = Vector2.one;
+    
     [Header("Visual Settings")]
     public Color panelColor = new Color(0, 0, 0, 0.95f);
     public Color gameOverTextColor = new Color(0.8f, 0.05f, 0.05f, 1f);
@@ -46,8 +51,11 @@ public class EnhancedGameOverManager : MonoBehaviour
     public AudioClip horrorAmbientSound;
     public AudioClip hoverSound;
     public AudioClip clickSound;
+    [Range(0f, 1f)]
     public float ambientVolume = 0.4f;
+    [Range(0f, 1f)]
     public float hoverVolume = 0.5f;
+    [Range(0f, 1f)]
     public float clickVolume = 0.7f;
     private AudioSource ambientAudioSource;
     private AudioSource uiAudioSource;
@@ -62,6 +70,17 @@ public class EnhancedGameOverManager : MonoBehaviour
     public InputActionAsset menuInputActions;
     private InputAction navigateAction;
     private InputAction submitAction;
+    
+    [Header("Text Movement Settings")]
+    public float textMoveSpeed = 500f;
+    public float textMovementSmoothing = 0.1f;
+    public float textMovementEasing = 0.05f;
+    public float screenEdgePadding = 100f;
+    private Vector2 textMovementInput;
+    private Vector2 currentTextVelocity;
+    private Vector3 originalTextPosition;
+    private RectTransform textRectTransform;
+    private bool textMovementEnabled = false;
     
     [Header("Player Detection")]
     private List<PlayerHealth> playerHealthComponents = new List<PlayerHealth>();
@@ -95,6 +114,29 @@ public class EnhancedGameOverManager : MonoBehaviour
         }
     }
     
+    #if UNITY_EDITOR
+    [ContextMenu("Reset and Find Resources")]
+    public void ResetAndFindResources()
+    {
+        if (larkeSansFont == null)
+        {
+            string[] guids = UnityEditor.AssetDatabase.FindAssets("Larke Sans Bold SDF t:TMP_FontAsset");
+            if (guids.Length > 0)
+            {
+                string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guids[0]);
+                larkeSansFont = UnityEditor.AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(path);
+                Debug.Log($"[EnhancedGameOverManager] Found font at: {path}");
+            }
+        }
+        
+        // Find a default texture if none assigned
+        if (textFaceTexture == null)
+        {
+            // Optional: find a default noise or grunge texture
+        }
+    }
+    #endif
+
     private void Awake()
     {
         if (instance == null)
@@ -108,14 +150,21 @@ public class EnhancedGameOverManager : MonoBehaviour
             return;
         }
         
+        if (!ValidateResources())
+        {
+            Debug.LogError("[EnhancedGameOverManager] Resource validation failed. Some UI elements may not display correctly.");
+        }
+        
         ambientAudioSource = gameObject.AddComponent<AudioSource>();
         ambientAudioSource.playOnAwake = false;
         ambientAudioSource.loop = true;
         ambientAudioSource.volume = ambientVolume;
+        ambientAudioSource.ignoreListenerPause = true;
         
         uiAudioSource = gameObject.AddComponent<AudioSource>();
         uiAudioSource.playOnAwake = false;
         uiAudioSource.loop = false;
+        uiAudioSource.ignoreListenerPause = true;
         
         eventSystem = FindObjectOfType<EventSystem>();
         if (eventSystem == null)
@@ -128,6 +177,28 @@ public class EnhancedGameOverManager : MonoBehaviour
         SetupInputActions();
         CreateGameOverUI();
         HideGameOver();
+    }
+    
+    private bool ValidateResources()
+    {
+        bool allValid = true;
+        
+        if (larkeSansFont == null)
+        {
+            // Try to find it in the project
+            Debug.LogWarning("[EnhancedGameOverManager] Larke Sans font not assigned. Attempting to locate...");
+            // In a real scenario, we might use Resources.Load if it was there, 
+            // but since it's not, we'll just log and return false.
+            allValid = false;
+        }
+        
+        if (useTextTexture && textFaceTexture == null)
+        {
+            Debug.LogWarning("[EnhancedGameOverManager] Text Face Texture is enabled but no texture is assigned.");
+            // Not strictly fatal, but good to know
+        }
+        
+        return allValid;
     }
     
     private void Start()
@@ -196,6 +267,53 @@ public class EnhancedGameOverManager : MonoBehaviour
         {
             currentGamepad = Gamepad.current;
         }
+        
+        // Handle text movement with joystick
+        if (textMovementEnabled && textRectTransform != null && currentGamepad != null)
+        {
+            HandleTextMovement();
+        }
+        
+        if (currentGamepad != null && navigationCooldown <= 0f)
+        {
+            Vector2 leftStick = currentGamepad.leftStick.ReadValue();
+            
+            // Check if stick is being used for text movement (vertical input)
+            if (Mathf.Abs(leftStick.y) > 0.3f && textMovementEnabled)
+            {
+                // Text movement takes priority over button navigation
+                return;
+            }
+            
+            if (Mathf.Abs(leftStick.y) > 0.5f)
+            {
+                int previousIndex = selectedButtonIndex;
+                
+                if (leftStick.y > 0.5f)
+                {
+                    selectedButtonIndex--;
+                    if (selectedButtonIndex < 0) selectedButtonIndex = buttons.Length - 1;
+                }
+                else if (leftStick.y < -0.5f)
+                {
+                    selectedButtonIndex++;
+                    if (selectedButtonIndex >= buttons.Length) selectedButtonIndex = 0;
+                }
+                
+                if (previousIndex != selectedButtonIndex)
+                {
+                    UpdateButtonSelection();
+                    PlayHoverSound();
+                    TriggerHapticFeedback(navigationHapticIntensity, 0f, navigationHapticDuration);
+                    navigationCooldown = NAVIGATION_DELAY;
+                }
+            }
+            
+            if (currentGamepad.buttonSouth.wasPressedThisFrame)
+            {
+                ExecuteSelection();
+            }
+        }
     }
     
     private void OnNavigate(InputAction.CallbackContext context)
@@ -233,6 +351,15 @@ public class EnhancedGameOverManager : MonoBehaviour
     {
         if (!gameOverTriggered) return;
         
+        // Only allow selection via Gamepad buttonSouth (A button)
+        if (context.control.device is Gamepad && context.control.name.Contains("buttonSouth"))
+        {
+            ExecuteSelection();
+        }
+    }
+    
+    private void ExecuteSelection()
+    {
         PlayClickSound();
         TriggerHapticFeedback(selectionHapticIntensity, selectionHapticIntensity, selectionHapticDuration);
         
@@ -267,29 +394,28 @@ public class EnhancedGameOverManager : MonoBehaviour
         int buttonIndex = System.Array.IndexOf(buttons, button);
         if (buttonIndex < 0) yield break;
         
-        RectTransform rect = button.GetComponent<RectTransform>();
-        Image img = button.GetComponent<Image>();
+        CanvasGroup buttonGroup = button.GetComponent<CanvasGroup>();
+        if (buttonGroup == null)
+        {
+            buttonGroup = button.gameObject.AddComponent<CanvasGroup>();
+        }
         
-        Vector3 targetScale = hovered ? buttonOriginalScales[buttonIndex] * buttonHoverScale : buttonOriginalScales[buttonIndex];
-        Color targetColor = hovered ? buttonSelectedColor : buttonNormalColor;
+        float targetAlpha = hovered ? 1f : 0.7f;
         
         float elapsed = 0f;
-        Vector3 startScale = rect.localScale;
-        Color startColor = img.color;
+        float startAlpha = buttonGroup.alpha;
         
         while (elapsed < buttonTransitionSpeed)
         {
             elapsed += Time.unscaledDeltaTime;
             float t = elapsed / buttonTransitionSpeed;
             
-            rect.localScale = Vector3.Lerp(startScale, targetScale, t);
-            img.color = Color.Lerp(startColor, targetColor, t);
+            buttonGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, t);
             
             yield return null;
         }
         
-        rect.localScale = targetScale;
-        img.color = targetColor;
+        buttonGroup.alpha = targetAlpha;
     }
     
     private void TriggerHapticFeedback(float lowFrequency, float highFrequency, float duration)
@@ -380,14 +506,16 @@ public class EnhancedGameOverManager : MonoBehaviour
         canvasScaler.referenceResolution = new Vector2(1920, 1080);
         canvasScaler.matchWidthOrHeight = 0.5f;
         
-        gameObject.AddComponent<GraphicRaycaster>();
+        // Disabled GraphicRaycaster to prevent mouse/touch activation
+        // Navigation and selection will be handled via Gamepad input
+        GraphicRaycaster raycaster = gameObject.AddComponent<GraphicRaycaster>();
+        raycaster.enabled = false;
         
+        // Create panel without background image (removed panelImage component)
         gameOverPanel = new GameObject("GameOverPanel", typeof(RectTransform));
         gameOverPanel.transform.SetParent(gameOverCanvas.transform, false);
         
-        Image panelImage = gameOverPanel.AddComponent<Image>();
-        panelImage.color = panelColor;
-        
+        // No Image component - transparent panel
         panelCanvasGroup = gameOverPanel.AddComponent<CanvasGroup>();
         panelCanvasGroup.alpha = 0f;
         
@@ -399,31 +527,38 @@ public class EnhancedGameOverManager : MonoBehaviour
         
         GameObject textObj = new GameObject("GameOverText", typeof(RectTransform));
         textObj.transform.SetParent(gameOverPanel.transform, false);
+        textObj.transform.SetAsFirstSibling(); // Ensure text is rendered above other elements
         
         textCanvasGroup = textObj.AddComponent<CanvasGroup>();
         textCanvasGroup.alpha = 0f;
         
         gameOverText = textObj.AddComponent<TextMeshProUGUI>();
         gameOverText.text = "GAME OVER";
-        gameOverText.color = gameOverTextColor;
+        gameOverText.color = Color.white; // Pure white color (#FFFFFF)
         gameOverText.fontSize = gameOverTextFontSize;
         gameOverText.alignment = TextAlignmentOptions.Center;
         gameOverText.fontStyle = FontStyles.Bold;
+        
+        // Configure black outline (2px thickness)
+        gameOverText.outlineColor = Color.black;
+        gameOverText.outlineWidth = 0.2f; // 2px equivalent in TMP units
+        gameOverText.enableVertexGradient = false;
         
         if (larkeSansFont != null)
         {
             gameOverText.font = larkeSansFont;
         }
-        else
-        {
-            Debug.LogWarning("[EnhancedGameOverManager] Larke Sans font not assigned, using default");
-        }
         
-        RectTransform textRect = textObj.GetComponent<RectTransform>();
-        textRect.anchorMin = new Vector2(0.5f, 0.65f);
-        textRect.anchorMax = new Vector2(0.5f, 0.65f);
-        textRect.sizeDelta = new Vector2(800, 150);
-        textRect.anchoredPosition = Vector2.zero;
+        ApplyTextureToTMP(gameOverText);
+        
+        textRectTransform = textObj.GetComponent<RectTransform>();
+        textRectTransform.anchorMin = new Vector2(0.5f, 0.5f); // Center vertically
+        textRectTransform.anchorMax = new Vector2(0.5f, 0.5f); // Center vertically
+        textRectTransform.sizeDelta = new Vector2(800, 150);
+        textRectTransform.anchoredPosition = Vector2.zero;
+        
+        // Store original position for reset functionality
+        originalTextPosition = textRectTransform.anchoredPosition;
         
         GameObject buttonContainer = new GameObject("ButtonContainer", typeof(RectTransform));
         buttonContainer.transform.SetParent(gameOverPanel.transform, false);
@@ -455,8 +590,23 @@ public class EnhancedGameOverManager : MonoBehaviour
         for (int i = 0; i < buttons.Length; i++)
         {
             buttonOriginalScales[i] = buttons[i].GetComponent<RectTransform>().localScale;
+            
+            CanvasGroup btnGroup = buttons[i].gameObject.AddComponent<CanvasGroup>();
+            btnGroup.alpha = (i == 0) ? 1f : 0.7f;
+            
             AddButtonHoverEvents(buttons[i], i);
         }
+    }
+    
+    private void ApplyTextureToTMP(TextMeshProUGUI tmpText)
+    {
+        if (tmpText == null || !useTextTexture || textFaceTexture == null) return;
+        
+        // Create a material instance to avoid affecting other text elements
+        Material mat = tmpText.fontMaterial;
+        mat.SetTexture(ShaderUtilities.ID_FaceTex, textFaceTexture);
+        mat.SetTextureScale(ShaderUtilities.ID_FaceTex, textureScale);
+        tmpText.fontMaterial = mat;
     }
     
     private Button CreateButton(string name, string buttonText, Transform parent)
@@ -495,6 +645,8 @@ public class EnhancedGameOverManager : MonoBehaviour
             text.font = larkeSansFont;
         }
         
+        ApplyTextureToTMP(text);
+        
         RectTransform textRect = textObj.GetComponent<RectTransform>();
         textRect.anchorMin = Vector2.zero;
         textRect.anchorMax = Vector2.one;
@@ -520,12 +672,8 @@ public class EnhancedGameOverManager : MonoBehaviour
         });
         trigger.triggers.Add(pointerEnter);
         
-        EventTrigger.Entry pointerClick = new EventTrigger.Entry();
-        pointerClick.eventID = EventTriggerType.PointerClick;
-        pointerClick.callback.AddListener((data) => {
-            PlayClickSound();
-        });
-        trigger.triggers.Add(pointerClick);
+        // Note: PointerClick is intentionally omitted to prevent mouse/touch activation
+        // selection is only handled via Gamepad Button South (A)
     }
     
     public void ShowGameOver()
@@ -540,6 +688,9 @@ public class EnhancedGameOverManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         
         selectedButtonIndex = 0;
+        
+        // Reset text position to center
+        ResetTextPosition();
         
         if (horrorAmbientSound != null)
         {
@@ -578,6 +729,9 @@ public class EnhancedGameOverManager : MonoBehaviour
         
         StartCoroutine(PulseText());
         
+        // Enable text movement after text is fully visible
+        EnableTextMovement();
+        
         elapsed = 0f;
         while (elapsed < buttonFadeInDuration)
         {
@@ -589,10 +743,11 @@ public class EnhancedGameOverManager : MonoBehaviour
         
         UpdateButtonSelection();
         
-        if (ambientAudioSource.isPlaying)
-        {
-            StartCoroutine(FadeOutAmbient(1.5f));
-        }
+        // Removed FadeOutAmbient call to keep music playing
+        // if (ambientAudioSource.isPlaying)
+        // {
+        //     StartCoroutine(FadeOutAmbient(1.5f));
+        // }
         
         Debug.Log("[EnhancedGameOverManager] Fade-in sequence complete");
     }
@@ -628,6 +783,10 @@ public class EnhancedGameOverManager : MonoBehaviour
     
     public void HideGameOver()
     {
+        // Disable text movement and reset position
+        DisableTextMovement();
+        ResetTextPosition();
+        
         gameOverCanvas.gameObject.SetActive(false);
         gameOverTriggered = false;
         deadPlayersCount = 0;
@@ -673,6 +832,79 @@ public class EnhancedGameOverManager : MonoBehaviour
         #else
         Application.Quit();
         #endif
+    }
+    
+    private void HandleTextMovement()
+    {
+        if (textRectTransform == null) return;
+        
+        Vector2 leftStick = currentGamepad.leftStick.ReadValue();
+        textMovementInput = Vector2.Lerp(textMovementInput, leftStick, textMovementEasing);
+        
+        if (Mathf.Abs(textMovementInput.y) > 0.1f)
+        {
+            Vector2 currentPosition = textRectTransform.anchoredPosition;
+            float movementDelta = textMovementInput.y * textMoveSpeed * Time.unscaledDeltaTime;
+            
+            Vector2 newPosition = currentPosition + Vector2.up * movementDelta;
+            
+            // Apply screen boundaries (cached calculation for performance)
+            newPosition = ClampTextPositionToScreen(newPosition);
+            
+            // Smooth movement with easing - optimized for 60fps
+            Vector2 smoothedPosition = Vector2.SmoothDamp(currentPosition, newPosition, ref currentTextVelocity, textMovementSmoothing);
+            textRectTransform.anchoredPosition = smoothedPosition;
+        }
+    }
+    
+    private Vector2 ClampTextPositionToScreen(Vector2 position)
+    {
+        if (textRectTransform == null) return position;
+        
+        // Get screen dimensions in canvas space
+        Vector2 screenSize = new Vector2(Screen.width, Screen.height);
+        Vector2 canvasSize = gameOverCanvas.GetComponent<RectTransform>().sizeDelta;
+        
+        // Calculate text bounds
+        float textHeight = textRectTransform.sizeDelta.y;
+        float halfTextHeight = textHeight * 0.5f;
+        
+        // Calculate safe movement area with padding
+        float minY = -canvasSize.y * 0.5f + halfTextHeight + screenEdgePadding;
+        float maxY = canvasSize.y * 0.5f - halfTextHeight - screenEdgePadding;
+        
+        // Clamp position
+        position.y = Mathf.Clamp(position.y, minY, maxY);
+        
+        return position;
+    }
+    
+    private void ResetTextPosition()
+    {
+        if (textRectTransform != null)
+        {
+            textRectTransform.anchoredPosition = originalTextPosition;
+            currentTextVelocity = Vector2.zero;
+            textMovementInput = Vector2.zero;
+        }
+    }
+    
+    private void EnableTextMovement()
+    {
+        textMovementEnabled = true;
+    }
+
+    private void OnValidate()
+    {
+        if (ambientAudioSource != null)
+        {
+            ambientAudioSource.volume = ambientVolume;
+        }
+    }
+    
+    private void DisableTextMovement()
+    {
+        textMovementEnabled = false;
     }
     
     private void OnDestroy()
