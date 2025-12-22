@@ -116,7 +116,7 @@ MonoBehaviour:
     m_Value: 1
   saturate:
     m_OverrideState: 1
-    m_Value: -0.41
+    m_Value: -1.03
   brightness:
     m_OverrideState: 1
     m_Value: 1.117

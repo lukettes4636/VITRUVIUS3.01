@@ -90,6 +90,9 @@ public class MovJugador1 : MonoBehaviour
     [SerializeField] private string tiredAnimationBool = "IsTired";
     [SerializeField] private AudioClip pantingSound;
     [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip cooldownStartClip;
+    [Range(0f, 3f)]
+    [SerializeField] private float cooldownVolume = 1.0f;
 
     [Header("Popup Flotante sobre cabeza")]
     [SerializeField] private PlayerPopupBillboard popupBillboard;
@@ -935,11 +938,19 @@ public class MovJugador1 : MonoBehaviour
                 fatigueFeedback.SetExhausted(true);
             }
 
-            if (audioSource != null && pantingSound != null)
+            if (audioSource != null)
             {
-                audioSource.clip = pantingSound;
-                audioSource.loop = true;
-                audioSource.Play();
+                if (cooldownStartClip != null)
+                {
+                    audioSource.PlayOneShot(cooldownStartClip, cooldownVolume);
+                }
+
+                if (pantingSound != null)
+                {
+                    audioSource.clip = pantingSound;
+                    audioSource.loop = true;
+                    audioSource.Play();
+                }
             }
         }
     }

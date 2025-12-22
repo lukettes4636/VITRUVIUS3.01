@@ -44,12 +44,12 @@ public class SimpleTriggerPromptPro : MonoBehaviour
     public Transform detectionOrigin;
     
     [Tooltip("Distancia donde el prompt esta completamente visible")]
-    [Range(0.5f, 10f)]
-    public float fullVisibilityDistance = 3f;
+    [Range(0.5f, 20f)]
+    public float fullVisibilityDistance = 5f;
     
-    [Tooltip("Distancia donde el prompt comienza a desaparecer")]
-    [Range(1f, 15f)]
-    public float fadeStartDistance = 5f;
+    [Tooltip("Distancia donde el prompt comienza a aparecer")]
+    [Range(1f, 30f)]
+    public float fadeStartDistance = 12f;
     
     [Header("Fade Settings")]
     [Tooltip("Velocidad de fade in/out")]
@@ -110,6 +110,7 @@ public class SimpleTriggerPromptPro : MonoBehaviour
     private Color targetImageColor;
     private float lastPlayerSearchTime;
     private int playersInTrigger = 0;
+    private float hysteresisOffset = 0.2f; // Slight buffer to prevent distance flickering
 
     void Start()
     {
@@ -181,6 +182,7 @@ public class SimpleTriggerPromptPro : MonoBehaviour
         
         foreach (string tag in playerTags)
         {
+            // Using FindGameObjectsWithTag is fine here since it only runs every 'playerSearchInterval'
             GameObject[] playersWithTag = GameObject.FindGameObjectsWithTag(tag);
             foreach (GameObject playerObj in playersWithTag)
             {
@@ -191,6 +193,15 @@ public class SimpleTriggerPromptPro : MonoBehaviour
             }
         }
         
+        // If no players found by tag, try to find them by name as a fallback for Player1/Player2
+        if (allPlayers.Count == 0)
+        {
+            GameObject p1 = GameObject.Find("Player1");
+            if (p1 != null) allPlayers.Add(p1.transform);
+            GameObject p2 = GameObject.Find("Player2");
+            if (p2 != null) allPlayers.Add(p2.transform);
+        }
+
         playerTransforms = allPlayers.Count > 0 ? allPlayers.ToArray() : null;
     }
 
@@ -247,18 +258,19 @@ public class SimpleTriggerPromptPro : MonoBehaviour
             
             if (useDistanceOpacity)
             {
-                
                 float distanceRange = fadeStartDistance - fullVisibilityDistance;
                 float distanceFactor = 1f - ((distance - fullVisibilityDistance) / distanceRange);
-                float attenuatedOpacity = maxOpacity * Mathf.Pow(distanceFactor, distanceAttenuation);
+                
+                // Smoother curve for distance attenuation
+                float attenuatedOpacity = maxOpacity * Mathf.SmoothStep(0f, 1f, distanceFactor);
                 targetOpacity = Mathf.Clamp(attenuatedOpacity, 0f, maxOpacity);
             }
             else
             {
-                
                 float distanceRange = fadeStartDistance - fullVisibilityDistance;
                 float distanceFactor = 1f - ((distance - fullVisibilityDistance) / distanceRange);
-                targetOpacity = Mathf.Lerp(0f, maxOpacity, distanceFactor);
+                // Use SmoothStep for a much smoother transition
+                targetOpacity = Mathf.SmoothStep(0f, maxOpacity, distanceFactor);
             }
         }
     }
@@ -294,9 +306,9 @@ public class SimpleTriggerPromptPro : MonoBehaviour
         }
 
         currentOpacity = Mathf.SmoothDamp(currentOpacity, targetOpacity, ref opacityVelocity, smoothTime);
-        
-        
-        if (Mathf.Abs(currentOpacity - targetOpacity) < 0.005f)
+
+        // Clamp currentOpacity to targetOpacity if they are very close to avoid micro-updates
+        if (Mathf.Abs(currentOpacity - targetOpacity) < 0.001f)
         {
             currentOpacity = targetOpacity;
             opacityVelocity = 0f;
@@ -332,6 +344,10 @@ public class SimpleTriggerPromptPro : MonoBehaviour
         if (promptGroup != null)
         {
             promptGroup.alpha = currentOpacity;
+            
+            // Optimization: Disable raycasts and interaction when mostly invisible
+            promptGroup.blocksRaycasts = currentOpacity > 0.1f;
+            promptGroup.interactable = currentOpacity > 0.1f;
             
             if (hideObjectWhenInvisible && promptGroup.gameObject.activeSelf != shouldBeActive)
             {
