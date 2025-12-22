@@ -674,7 +674,7 @@ void EnsureControlsImageSetup()
                 rectTransform.sizeDelta = new Vector2(1200f, 800f);
                 
                 
-                rectTransform.localScale = Vector3.one;
+                rectTransform.localScale = new Vector3(0.65f, 0.65f, 1f);
             }
             
             
