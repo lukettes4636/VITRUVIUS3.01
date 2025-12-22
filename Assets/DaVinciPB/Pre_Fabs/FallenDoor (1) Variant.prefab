@@ -2843,19 +2843,16 @@ MonoBehaviour:
   dropSpeed: 7
   failLiftHeight: 0.35
   shakeAmount: 0.03
-  crushDamage: 10
+  crushDamage: 0
   playerLayer:
     serializedVersion: 2
     m_Bits: 8
   crushHeightThreshold: 0.6
-  liftSound: {fileID: 8300000, guid: 8062e7994028d014abd47e55badc3332, type: 3}
+  liftSound: {fileID: 8300000, guid: 52e945fc0ab59e1489c1ad4c30091cc4, type: 3}
   dropSound: {fileID: 8300000, guid: 1e1758ef204030243b03a7aba76cb802, type: 3}
   maxHeightSound: {fileID: 8300000, guid: d81a9f391ef37d84f9d226d854aed264, type: 3}
   effortVoiceP1: {fileID: 0}
   effortVoiceP2: {fileID: 0}
-  rumbleDuration: 0.2
-  lowFrequency: 0.9
-  highFrequency: 0.9
   dropRumbleDuration: 0.5
   dropLowFrequency: 0.5
   dropHighFrequency: 0.5

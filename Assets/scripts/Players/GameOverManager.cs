@@ -46,6 +46,9 @@ public class GameOverManager : MonoBehaviour
     [SerializeField] private Button quitButton;
     
     private Canvas gameOverCanvas;
+    public Canvas gameOverButtonsCanvas;
+    public GameObject gameOverCanvasPrefab;
+    public bool autoCreateGameOverUI = false;
     private TextMeshProUGUI gameOverText;
     private Button internalRetryButton;
     private Button internalQuitButton;
@@ -66,26 +69,7 @@ public class GameOverManager : MonoBehaviour
 
     void Update()
     {
-        if (!gameOverTriggered || gameOverCanvas == null || !gameOverCanvas.gameObject.activeInHierarchy) return;
-
-        // Check for any joystick button press to submit the currently selected button
-        Gamepad gamepad = Gamepad.current;
-        if (gamepad != null && gamepad.allControls.Any(c => c is UnityEngine.InputSystem.Controls.ButtonControl button && button.wasPressedThisFrame))
-        {
-            // If the user presses any button, we find what's selected and invoke it
-            if (EventSystem.current != null)
-            {
-                GameObject selected = EventSystem.current.currentSelectedGameObject;
-                if (selected != null)
-                {
-                    Button btn = selected.GetComponent<Button>();
-                    if (btn != null)
-                    {
-                        btn.onClick.Invoke();
-                    }
-                }
-            }
-        }
+        if (!gameOverTriggered || gameOverButtonsCanvas == null ? gameOverCanvas == null : false) return;
     }
 
     void Awake()
@@ -325,9 +309,12 @@ public class GameOverManager : MonoBehaviour
         var playerInputs = FindObjectsOfType<UnityEngine.InputSystem.PlayerInput>();
         foreach (var input in playerInputs)
         {
-            input.enabled = false;
+            input.enabled = true;
+            if (input.actions != null)
+            {
+                input.SwitchCurrentActionMap("UI");
+            }
         }
-        
         
         var playerControllers = FindObjectsOfType<PlayerControllerBase>();
         foreach (var controller in playerControllers)
@@ -347,6 +334,10 @@ public class GameOverManager : MonoBehaviour
         foreach (var input in playerInputs)
         {
             input.enabled = true;
+            if (input.actions != null)
+            {
+                input.SwitchCurrentActionMap("Player");
+            }
         }
         
         var playerControllers = FindObjectsOfType<PlayerControllerBase>();
@@ -449,7 +440,7 @@ public class GameOverManager : MonoBehaviour
     private IEnumerator GameOverSequence()
     {
         yield return StartCoroutine(FadeToBlack());
-        yield return new WaitForSeconds(reloadDelay);
+        yield return new WaitForSecondsRealtime(reloadDelay);
         
         ShowGameOverUI();
     }
@@ -704,12 +695,50 @@ public class GameOverManager : MonoBehaviour
          {
              GameObject eventSystemGO = new GameObject("EventSystem");
              eventSystemGO.AddComponent<EventSystem>();
-             eventSystemGO.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+             var uiModule = eventSystemGO.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+            var playerInputs = FindObjectsOfType<UnityEngine.InputSystem.PlayerInput>();
+            UnityEngine.InputSystem.PlayerInput provider = null;
+            if (playerInputs != null && playerInputs.Length > 0) provider = playerInputs[0];
+            if (provider != null && provider.actions != null)
+            {
+                var uiMap = provider.actions.FindActionMap("UI");
+                if (uiMap != null)
+                {
+                    var navigate = uiMap.FindAction("Navigate");
+                    var submit = uiMap.FindAction("Submit");
+                    var cancel = uiMap.FindAction("Cancel");
+                    if (navigate != null) uiModule.move = UnityEngine.InputSystem.InputActionReference.Create(navigate);
+                    if (submit != null) uiModule.submit = UnityEngine.InputSystem.InputActionReference.Create(submit);
+                    if (cancel != null) uiModule.cancel = UnityEngine.InputSystem.InputActionReference.Create(cancel);
+                }
+            }
          }
+ 
+        // Use user-provided canvas or prefab; avoid auto-creation unless enabled
+        if (gameOverButtonsCanvas != null)
+        {
+            gameOverCanvas = gameOverButtonsCanvas;
+            if (gameOverCanvas != null) gameOverCanvas.gameObject.SetActive(false);
+            return;
+        }
+        if (gameOverCanvasPrefab != null)
+        {
+            var go = Instantiate(gameOverCanvasPrefab);
+            gameOverButtonsCanvas = go.GetComponentInChildren<Canvas>();
+            if (gameOverButtonsCanvas == null) gameOverButtonsCanvas = go.GetComponent<Canvas>();
+            gameOverCanvas = gameOverButtonsCanvas;
+            if (gameOverCanvas != null) gameOverCanvas.gameObject.SetActive(false);
+            return;
+        }
+        if (!autoCreateGameOverUI)
+        {
+            return;
+        }
  
          GameObject canvasGO = new GameObject("GameOverCanvas");
         canvasGO.transform.SetParent(transform);
         gameOverCanvas = canvasGO.AddComponent<Canvas>();
+        gameOverButtonsCanvas = gameOverCanvas;
         gameOverCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
         gameOverCanvas.sortingOrder = 1001; 
         gameOverCanvas.gameObject.SetActive(false);
@@ -895,15 +924,32 @@ public class GameOverManager : MonoBehaviour
 
     private void ShowGameOverUI()
     {
-        if (gameOverCanvas != null)
+        var targetCanvas = gameOverButtonsCanvas != null ? gameOverButtonsCanvas : gameOverCanvas;
+        if (targetCanvas != null)
         {
-            gameOverCanvas.gameObject.SetActive(true);
+            targetCanvas.gameObject.SetActive(true);
             
             // Focus on the retry button for joystick navigation
             if (internalRetryButton != null)
             {
                 internalRetryButton.Select();
                 internalRetryButton.OnSelect(null);
+                if (EventSystem.current != null)
+                {
+                    EventSystem.current.SetSelectedGameObject(internalRetryButton.gameObject);
+                }
+            }
+            else
+            {
+                var firstBtn = targetCanvas.GetComponentInChildren<Button>();
+                if (firstBtn != null)
+                {
+                    firstBtn.Select();
+                    if (EventSystem.current != null)
+                    {
+                        EventSystem.current.SetSelectedGameObject(firstBtn.gameObject);
+                    }
+                }
             }
             
             if (gameOverText != null)
@@ -929,7 +975,7 @@ public class GameOverManager : MonoBehaviour
             
             while (elapsed < duration)
             {
-                elapsed += Time.deltaTime;
+                elapsed += Time.unscaledDeltaTime;
                 float alpha = Mathf.SmoothStep(0f, 1f, elapsed / duration);
                 
                 textColor.a = alpha;
@@ -979,7 +1025,7 @@ public class GameOverManager : MonoBehaviour
                 currentColor.a = flicker;
                 gameOverText.color = currentColor;
                 
-                elapsed += Time.deltaTime;
+                elapsed += Time.unscaledDeltaTime;
                 yield return null;
             }
             
@@ -990,7 +1036,7 @@ public class GameOverManager : MonoBehaviour
             
             while (returnElapsed < returnDuration)
             {
-                returnElapsed += Time.deltaTime;
+                returnElapsed += Time.unscaledDeltaTime;
                 float t = returnElapsed / returnDuration;
                 t = Mathf.SmoothStep(0f, 1f, t); 
                 
@@ -1006,9 +1052,10 @@ public class GameOverManager : MonoBehaviour
 
     private void HideGameOverUI()
     {
-        if (gameOverCanvas != null)
+        var targetCanvas = gameOverButtonsCanvas != null ? gameOverButtonsCanvas : gameOverCanvas;
+        if (targetCanvas != null)
         {
-            gameOverCanvas.gameObject.SetActive(false);
+            targetCanvas.gameObject.SetActive(false);
         }
     }
 
@@ -1042,7 +1089,7 @@ public class GameOverManager : MonoBehaviour
         yield return StartCoroutine(FadeToBlack());
         
         
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSecondsRealtime(0.5f);
         
         
         SceneManager.LoadScene(currentSceneName);

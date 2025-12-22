@@ -14,6 +14,8 @@ TagManager:
   - Ray
   - Player_Weapon
   - OriginalWall
+  - NPC
+  - Enemy
   layers:
   - Default
   - TransparentFX
@@ -29,7 +31,7 @@ TagManager:
   - obstacle
   - UI
   - DestructibleWall
-  - 
+  - Debris
   - Walls
   - Player1mask
   - Player2mask

@@ -2345,12 +2345,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43f7fb53c078729468e1ad1664760666, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialState: 0
+  initialState: 2
   crawlSpeed: 1.2
   walkSpeed: 2.5
   investigationSpeed: 2
-  attackRange: 2.2
-  attackCooldown: 0.7
+  attackRange: 3.26
+  attackCooldown: 1
+  attackDamage: 25
+  detectionRange: 1.78
+  postAttackFocusTime: 2
+  attackApproachStoppingDistance: 2.29
   patrolPoints:
   - {fileID: 4353887507022756015}
   - {fileID: 39700651828597825}
@@ -2358,7 +2362,7 @@ MonoBehaviour:
   - {fileID: 5746554354176520603}
   - {fileID: 9215455350711377613}
   patrolWaitTime: 5
-  showDebugLogs: 0
+  investigationDuration: 3
   currentState: 0
 --- !u!114 &601196535955162531
 MonoBehaviour:
@@ -2378,13 +2382,15 @@ MonoBehaviour:
   npcTargets:
   - {fileID: 0}
   objectNoiseDetection: {fileID: 4847572395625809194}
-  audioSensitivity: 3
-  maxHearingDistance: 20
-  minDetectionRadius: 1.5
-  detectionThreshold: 0.2
+  audioSensitivity: 0.5
+  maxHearingDistance: 10.7
+  minDetectionRadius: 4.73
+  detectionThreshold: 0
+  proximityDetectionRadius: 3.5
+  closeRangeBoost: 2
   soundBlockerLayer:
     serializedVersion: 2
-    m_Bits: 2048
+    m_Bits: 0
   soundAttenuationPerWall: 0.7
   memoryDuration: 60
   destructibleWallLayer:
@@ -2392,7 +2398,7 @@ MonoBehaviour:
     m_Bits: 8192
   wallDetectionDistance: 3
   wallDetectionRadius: 0.5
-  showDebugGizmos: 1
+  frontWallCheckDistance: 2.5
 --- !u!114 &7432569301493721955
 MonoBehaviour:
   m_ObjectHideFlags: 0

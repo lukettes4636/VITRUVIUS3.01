@@ -35,7 +35,7 @@ public class PlayerNoiseEmitter : MonoBehaviour
 
     private CharacterController controller;
     private float visualRadius = 0f;
-    private bool isRingVisible = true;
+    public bool isRingVisible = false;
     
     public bool IsRingVisible
     {
@@ -71,6 +71,7 @@ public class PlayerNoiseEmitter : MonoBehaviour
         if (noiseVFX != null)
         {
             noiseVFX.Play();
+            noiseVFX.enabled = false;
         }
         lastLogTime = Time.time;
     }

@@ -378,7 +378,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ActionName: Action Button
   ThrowActionName: Throw Action Button
-  GrabRadius: 2
+  GrabRadius: 1
   HoldOffset: {x: 0.14, y: 0.95, z: 0.31}
   HoldRotation: {x: 0, y: -35, z: 0}
   CrouchHoldOffset: {x: 0.24, y: 0.6, z: 0.42}
@@ -395,6 +395,10 @@ MonoBehaviour:
   CollisionVolume: 1
   NoiseRange: 15
   MinCollisionForce: 2
+  outlineColorProperty: _Outline_Color
+  outlineScaleProperty: _Outline_Scale
+  activeOutlineScale: 0.0125
+  cooperativeOutlineColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   VerboseLogging: 0
 --- !u!4 &730086221754517569 stripped
 Transform:

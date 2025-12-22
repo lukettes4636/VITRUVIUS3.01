@@ -48,9 +48,61 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -6124005409385186511, guid: 512ba3a41d6d9454b85d3052fefecc0b, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: -4764377921795364363, guid: 512ba3a41d6d9454b85d3052fefecc0b, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: -4317984976656387305, guid: 512ba3a41d6d9454b85d3052fefecc0b, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: -3646249199070638511, guid: 512ba3a41d6d9454b85d3052fefecc0b, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: -3173504925592811535, guid: 512ba3a41d6d9454b85d3052fefecc0b, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: -2074296086220234137, guid: 512ba3a41d6d9454b85d3052fefecc0b, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: -854792196704810976, guid: 512ba3a41d6d9454b85d3052fefecc0b, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 512ba3a41d6d9454b85d3052fefecc0b, type: 3}
       propertyPath: m_Name
       value: Pared_Fractur Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 512ba3a41d6d9454b85d3052fefecc0b, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 2047310448998181278, guid: 512ba3a41d6d9454b85d3052fefecc0b, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 3575357929208025211, guid: 512ba3a41d6d9454b85d3052fefecc0b, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 3681259103243307673, guid: 512ba3a41d6d9454b85d3052fefecc0b, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 5590608755150512203, guid: 512ba3a41d6d9454b85d3052fefecc0b, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 6003056851520517352, guid: 512ba3a41d6d9454b85d3052fefecc0b, type: 3}
+      propertyPath: m_Layer
+      value: 14
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

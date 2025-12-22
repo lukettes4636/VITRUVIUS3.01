@@ -153,6 +153,19 @@ public class Wall_Destruction : MonoBehaviour
     private void SetupFragments(GameObject brokenWall)
     {
         Collider[] fragmentColliders = brokenWall.GetComponentsInChildren<Collider>();
+        
+        int debrisLayer = LayerMask.NameToLayer(fragmentLayerName);
+        if (debrisLayer != -1)
+        {
+            brokenWall.layer = debrisLayer;
+            foreach (Transform t in brokenWall.GetComponentsInChildren<Transform>())
+            {
+                t.gameObject.layer = debrisLayer;
+                var modifier = t.gameObject.GetComponent<Unity.AI.Navigation.NavMeshModifier>();
+                if (modifier == null) modifier = t.gameObject.AddComponent<Unity.AI.Navigation.NavMeshModifier>();
+                modifier.ignoreFromBuild = true;
+            }
+        }
 
         if (removeFromNavMesh)
         {
