@@ -59,9 +59,6 @@ public class MainMenuThunderEffect : MonoBehaviour
     
     [Tooltip("Duracion de cada destello individual.")]
     [SerializeField] private float individualFlashDuration = 0.05f;
-    
-    [Tooltip("Variacion de intensidad entre destellos.")]
-    [SerializeField] private float intensityVariation = 0.3f;
 
     private float originalIntensity;
     private Color originalColor;
@@ -80,7 +77,9 @@ public class MainMenuThunderEffect : MonoBehaviour
         
         if (thunderClips == null || thunderClips.Count == 0)
         {
+            #if UNITY_EDITOR
             AutoAssignThunderClips();
+            #endif
         }
         
         

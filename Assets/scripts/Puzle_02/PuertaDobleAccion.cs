@@ -58,7 +58,6 @@ public class PuertaDobleAccion : MonoBehaviour
     [SerializeField] private Vector3 player1ButtonOffset = new Vector3(-1f, 2f, 0f);
     [SerializeField] private Vector3 player2ButtonOffset = new Vector3(1f, 2f, 0f);
     [SerializeField] private float buttonAnimDuration = 0.3f;
-    [SerializeField] private bool usePlayerColors = true;
     [SerializeField] private bool useBillboardEffect = true;
 
     [Header("Visual Feedback")]

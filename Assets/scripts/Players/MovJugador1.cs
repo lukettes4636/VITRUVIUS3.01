@@ -861,7 +861,7 @@ public class MovJugador1 : MonoBehaviour
             return;
         }
 
-        if (isRunningInput && moving && canRun)
+        if (isRunningInput && moving && canRun && !isCrouching)
         {
             DepleteStamina();
         }
@@ -1017,10 +1017,6 @@ public class MovJugador1 : MonoBehaviour
         }
         else if (isCrouching)
         {
-            if (isRunningInput && moving && canRun)
-            {
-                return crouchRunSpeed;
-            }
             if (wasRunning && staminaUI != null)
             {
                 staminaUI.HideStaminaBar();
@@ -1120,7 +1116,7 @@ public class MovJugador1 : MonoBehaviour
         bool moving = moveInput.magnitude > 0.1f;
 
         animator.SetBool("IsCrouching", isCrouching);
-        animator.SetBool("IsRunning", isRunningInput && moving && canRun);
+        animator.SetBool("IsRunning", isRunningInput && moving && canRun && !isCrouching);
 
         if (!isTransitioning)
         {
@@ -1128,7 +1124,7 @@ public class MovJugador1 : MonoBehaviour
             controller.center = isCrouching ? crouchCenter : standCenter;
         }
 
-        animator.SetFloat("Speed", moving ? (isRunningInput && canRun ? (isCrouching ? 1.5f : 2f) : (isCrouching ? 1.0f : 1f)) : 0f);
+        animator.SetFloat("Speed", moving ? (isRunningInput && canRun && !isCrouching ? 2f : (isCrouching ? 1.0f : 1f)) : 0f);
     }
 
     private void UpdateAnimatorToIdle()

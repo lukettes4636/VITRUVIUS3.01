@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System;
@@ -59,7 +59,6 @@ public class PlayerHealth : MonoBehaviour
     [Header("Efectos Visuales")]
     
     [SerializeField] private VisualEffect bloodParticlesPrefab;
-    [SerializeField] private float bloodEffectProbability = 0.7f;
     [Tooltip("El Transform que marca el punto de origen de los efectos de sangre (debe estar en el pecho del jugador).")]
     [SerializeField] private Transform chestImpactPoint;
 

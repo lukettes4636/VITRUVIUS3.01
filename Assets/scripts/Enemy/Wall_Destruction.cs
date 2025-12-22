@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using Unity.AI.Navigation;
 using UnityEngine;
 using UnityEngine.AI;
@@ -63,22 +63,32 @@ public class Wall_Destruction : MonoBehaviour
 
         SetupFragments(brokenWall);
         RemoveFromNavMesh();
-
+        
+        // Start UpdateNavMeshAfterDestruction on the brokenWall since this object is about to be disabled
         if (updateNavMeshOnDestroy)
         {
-            StartCoroutine(UpdateNavMeshAfterDestruction(wallPosition));
+            // Use a temporary MonoBehaviour on the new object or a global manager to run the coroutine
+            // For simplicity, we'll try to run it on the brokenWall if it has a MonoBehaviour, 
+            // otherwise we'll create a temporary helper.
+            MonoBehaviour runner = brokenWall.GetComponent<MonoBehaviour>();
+            if (runner == null) runner = brokenWall.AddComponent<CoroutineRunner>();
+            
+            runner.StartCoroutine(UpdateNavMeshAfterDestruction(wallPosition));
         }
 
-        if (isActiveAndEnabled)
-        {
-            StartCoroutine(SimulateAndFreeze(brokenWall.transform, impactPoint, impactDirection));
-        }
+        // Start SimulateAndFreeze on the brokenWall since this object is about to be disabled
+        MonoBehaviour simRunner = brokenWall.GetComponent<MonoBehaviour>();
+        if (simRunner == null) simRunner = brokenWall.AddComponent<CoroutineRunner>();
+        simRunner.StartCoroutine(SimulateAndFreeze(brokenWall.transform, impactPoint, impactDirection));
 
         if (gameObject.scene.IsValid())
         {
             gameObject.SetActive(false);
         }
     }
+    
+    // Helper class to run coroutines on the broken wall object
+    public class CoroutineRunner : MonoBehaviour {}
 
     private void RemoveFromNavMesh()
     {
@@ -114,6 +124,8 @@ public class Wall_Destruction : MonoBehaviour
         {
             foreach (NavMeshSurface surface in surfaces)
             {
+                // Set to use physics colliders to avoid Read/Write errors on meshes in standalone builds
+                surface.useGeometry = NavMeshCollectGeometry.PhysicsColliders;
                 surface.BuildNavMesh();
             }
         }

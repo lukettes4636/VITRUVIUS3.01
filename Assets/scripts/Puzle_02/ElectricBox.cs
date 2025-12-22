@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using System.Collections.Generic; 
 using UnityEngine.UI;
@@ -21,13 +21,11 @@ public class ElectricBox : MonoBehaviour
     [SerializeField] private AudioClip powerCutSound;
     [Range(0f, 1f)]
     [SerializeField] private float powerCutVolume = 1.0f;
-    [SerializeField] private float powerCutMaxDistance = 50f;
 
     [Header("Sonido Secundario (Linear Rolloff)")]
     [SerializeField] private AudioClip powerCutSoundLinear;
     [Range(0f, 1f)]
     [SerializeField] private float powerCutVolumeLinear = 1.0f;
-    [SerializeField] private float linearMaxDistance = 50f;
 
     [Header("Objetos Afectados")]
     [Tooltip("Arrastra aqui el script WarningDoor del Collider que quieres desactivar.")]

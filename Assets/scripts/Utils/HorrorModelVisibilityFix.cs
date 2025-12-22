@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Animations.Rigging;
 
 public class HorrorModelVisibilityFix : MonoBehaviour
@@ -44,14 +44,18 @@ public class HorrorModelVisibilityFix : MonoBehaviour
     {
         if (renderers == null) CacheComponents();
 
+        #if UNITY_EDITOR
         bool fixedAny = false;
+        #endif
 
         foreach (var renderer in renderers)
         {
             if (renderer != null && !renderer.enabled)
             {
                 renderer.enabled = true;
+                #if UNITY_EDITOR
                 fixedAny = true;
+                #endif
                 #if UNITY_EDITOR
 
                 #endif
@@ -63,7 +67,9 @@ public class HorrorModelVisibilityFix : MonoBehaviour
             if (rig != null && rig.weight < 0.99f)
             {
                 rig.weight = 1f;
+                #if UNITY_EDITOR
                 fixedAny = true;
+                #endif
                 #if UNITY_EDITOR
 
                 #endif

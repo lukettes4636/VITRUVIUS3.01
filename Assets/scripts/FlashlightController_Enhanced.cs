@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using VLB;
 
@@ -104,7 +104,6 @@ public class FlashlightController_Enhanced : MonoBehaviour
     private Vector3 lastSafeArmPosition;
     private Quaternion lastSafeArmRotation;
     
-    private bool isArmLowered = false;
     private float currentWallArmValue = 0f;
     private float targetWallArmValue = 0f;
 
@@ -537,12 +536,10 @@ private void ToggleAllChildObjects(bool state)
 
         if (wallDetected)
         {
-            isArmLowered = true;
             targetWallArmValue = wallArmDownValue;
         }
         else
         {
-            isArmLowered = false;
             targetWallArmValue = wallArmNormalValue;
         }
 

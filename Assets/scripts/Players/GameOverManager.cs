@@ -1,9 +1,12 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.InputSystem;
+using System.Linq;
+using UnityEngine.EventSystems;
 
 public class GameOverManager : MonoBehaviour
 {
@@ -18,6 +21,8 @@ public class GameOverManager : MonoBehaviour
     [SerializeField] private float shakeDuration = 1.5f;
     [Tooltip("Whether to automatically pause the game when Game Over is triggered.")]
     [SerializeField] private bool autoPauseOnGameOver = false; 
+    [Tooltip("Font size for the GAME OVER text. Default is 67 (approx 30% smaller than original 96).")]
+    [SerializeField] private float gameOverTextSize = 67f; 
 
     [Header("References")]
     [Tooltip("The NPC that must survive. If null, will try to auto-find by tag.")]
@@ -34,16 +39,54 @@ public class GameOverManager : MonoBehaviour
     private Image fadeImage;
     
     
+    [Header("UI Assignment")]
+    [Tooltip("The Retry button. If null, one will be created programmatically.")]
+    [SerializeField] private Button retryButton;
+    [Tooltip("The Quit (Respawn) button. If null, one will be created programmatically.")]
+    [SerializeField] private Button quitButton;
+    
     private Canvas gameOverCanvas;
     private TextMeshProUGUI gameOverText;
-    private Button continueButton;
-    private Button quitButton;
+    private Button internalRetryButton;
+    private Button internalQuitButton;
+    private CanvasGroup buttonCanvasGroup;
     
     
+    [Header("UI Audio")]
+    [Tooltip("Sound played when navigating between buttons.")]
+    [SerializeField] private AudioClip hoverSound;
+    [Tooltip("Sound played when a button is clicked.")]
+    [SerializeField] private AudioClip clickSound;
+    private AudioSource uiAudioSource;
+
     private float originalTimeScale = 1f;
     private bool wasGamePaused = false;
 
     public static GameOverManager Instance { get; private set; }
+
+    void Update()
+    {
+        if (!gameOverTriggered || gameOverCanvas == null || !gameOverCanvas.gameObject.activeInHierarchy) return;
+
+        // Check for any joystick button press to submit the currently selected button
+        Gamepad gamepad = Gamepad.current;
+        if (gamepad != null && gamepad.allControls.Any(c => c is UnityEngine.InputSystem.Controls.ButtonControl button && button.wasPressedThisFrame))
+        {
+            // If the user presses any button, we find what's selected and invoke it
+            if (EventSystem.current != null)
+            {
+                GameObject selected = EventSystem.current.currentSelectedGameObject;
+                if (selected != null)
+                {
+                    Button btn = selected.GetComponent<Button>();
+                    if (btn != null)
+                    {
+                        btn.onClick.Invoke();
+                    }
+                }
+            }
+        }
+    }
 
     void Awake()
     {
@@ -56,6 +99,11 @@ public class GameOverManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
+        uiAudioSource = gameObject.AddComponent<AudioSource>();
+        uiAudioSource.playOnAwake = false;
+        uiAudioSource.spatialBlend = 0f; // 2D Sound
+        uiAudioSource.ignoreListenerPause = true;
     }
 
     void Start()
@@ -64,6 +112,7 @@ public class GameOverManager : MonoBehaviour
         SubscribeToEvents();
         CreateFadeScreen();
         CreateGameOverUI();
+        SetupButtonListeners();
         StartCoroutine(InitialFadeIn());
         
         
@@ -314,12 +363,6 @@ public class GameOverManager : MonoBehaviour
     
     private void DisableAllEnemyAI()
     {
-        var enemyAIs = FindObjectsOfType<NemesisAI_Enhanced>();
-        foreach (var enemy in enemyAIs)
-        {
-            enemy.enabled = false;
-        }
-        
         var navMeshAgents = FindObjectsOfType<UnityEngine.AI.NavMeshAgent>();
         foreach (var agent in navMeshAgents)
         {
@@ -328,21 +371,10 @@ public class GameOverManager : MonoBehaviour
                 agent.enabled = false;
             }
         }
-        
-
     }
-    
-    
-    
     
     private void EnableAllEnemyAI()
     {
-        var enemyAIs = FindObjectsOfType<NemesisAI_Enhanced>();
-        foreach (var enemy in enemyAIs)
-        {
-            enemy.enabled = true;
-        }
-        
         var navMeshAgents = FindObjectsOfType<UnityEngine.AI.NavMeshAgent>();
         foreach (var agent in navMeshAgents)
         {
@@ -351,8 +383,6 @@ public class GameOverManager : MonoBehaviour
                 agent.enabled = true;
             }
         }
-        
-
     }
     
     
@@ -582,10 +612,102 @@ public class GameOverManager : MonoBehaviour
         }
     }
 
+    private void SetupButtonListeners()
+    {
+        internalRetryButton = retryButton != null ? retryButton : internalRetryButton;
+        internalQuitButton = quitButton != null ? quitButton : internalQuitButton;
+
+        if (internalRetryButton != null)
+        {
+            internalRetryButton.onClick.RemoveAllListeners();
+            internalRetryButton.onClick.AddListener(() => PlayClickSound());
+            internalRetryButton.onClick.AddListener(OnContinueButtonClicked);
+            AddButtonTriggers(internalRetryButton);
+            
+            internalRetryButton.transition = Selectable.Transition.ColorTint;
+            ColorBlock cb = internalRetryButton.colors;
+            cb.normalColor = new Color(1, 1, 1, 1f);
+            cb.highlightedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+            cb.selectedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+            cb.pressedColor = new Color(0.5f, 0.5f, 0.5f, 1f);
+            internalRetryButton.colors = cb;
+        }
+
+        if (internalQuitButton != null)
+        {
+            internalQuitButton.onClick.RemoveAllListeners();
+            internalQuitButton.onClick.AddListener(() => PlayClickSound());
+            internalQuitButton.onClick.AddListener(OnQuitButtonClicked);
+            AddButtonTriggers(internalQuitButton);
+            
+            internalQuitButton.transition = Selectable.Transition.ColorTint;
+            ColorBlock cb = internalQuitButton.colors;
+            cb.normalColor = new Color(1, 1, 1, 1f);
+            cb.highlightedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+            cb.selectedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+            cb.pressedColor = new Color(0.5f, 0.5f, 0.5f, 1f);
+            internalQuitButton.colors = cb;
+        }
+        
+        if (internalRetryButton != null && internalQuitButton != null)
+        {
+            Navigation retryNav = new Navigation();
+            retryNav.mode = Navigation.Mode.Explicit;
+            retryNav.selectOnDown = internalQuitButton;
+            retryNav.selectOnUp = internalQuitButton;
+            internalRetryButton.navigation = retryNav;
+
+            Navigation quitNav = new Navigation();
+            quitNav.mode = Navigation.Mode.Explicit;
+            quitNav.selectOnUp = internalRetryButton;
+            quitNav.selectOnDown = internalRetryButton;
+            internalQuitButton.navigation = quitNav;
+        }
+    }
+
+    private void AddButtonTriggers(Button btn)
+    {
+        EventTrigger trigger = btn.gameObject.GetComponent<EventTrigger>();
+        if (trigger == null) trigger = btn.gameObject.AddComponent<EventTrigger>();
+
+        EventTrigger.Entry entryEnter = new EventTrigger.Entry();
+        entryEnter.eventID = EventTriggerType.PointerEnter;
+        entryEnter.callback.AddListener((data) => { PlayHoverSound(); });
+        trigger.triggers.Add(entryEnter);
+
+        EventTrigger.Entry entrySelect = new EventTrigger.Entry();
+        entrySelect.eventID = EventTriggerType.Select;
+        entrySelect.callback.AddListener((data) => { PlayHoverSound(); });
+        trigger.triggers.Add(entrySelect);
+    }
+
+    private void PlayHoverSound()
+    {
+        if (uiAudioSource != null && hoverSound != null)
+        {
+            uiAudioSource.PlayOneShot(hoverSound);
+        }
+    }
+
+    private void PlayClickSound()
+    {
+        if (uiAudioSource != null && clickSound != null)
+        {
+            uiAudioSource.PlayOneShot(clickSound);
+        }
+    }
+
     private void CreateGameOverUI()
     {
-        
-        GameObject canvasGO = new GameObject("GameOverCanvas");
+        // Ensure EventSystem exists for UI navigation
+         if (EventSystem.current == null)
+         {
+             GameObject eventSystemGO = new GameObject("EventSystem");
+             eventSystemGO.AddComponent<EventSystem>();
+             eventSystemGO.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+         }
+ 
+         GameObject canvasGO = new GameObject("GameOverCanvas");
         canvasGO.transform.SetParent(transform);
         gameOverCanvas = canvasGO.AddComponent<Canvas>();
         gameOverCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -599,10 +721,9 @@ public class GameOverManager : MonoBehaviour
         GraphicRaycaster raycaster = canvasGO.AddComponent<GraphicRaycaster>();
 
         
-        GameObject panelGO = new GameObject("BackgroundPanel");
-        panelGO.transform.SetParent(canvasGO.transform);
+        GameObject panelGO = new GameObject("BackgroundPanel", typeof(RectTransform));
+        panelGO.transform.SetParent(canvasGO.transform, false);
         Image panelImage = panelGO.AddComponent<Image>();
-        
         panelImage.color = new Color(0f, 0f, 0f, 0.85f); 
 
         RectTransform panelRect = panelGO.GetComponent<RectTransform>();
@@ -611,30 +732,21 @@ public class GameOverManager : MonoBehaviour
         panelRect.sizeDelta = Vector2.zero;
         panelRect.anchoredPosition = Vector2.zero;
 
-        
-        GameObject textGO = new GameObject("GameOverText");
-        textGO.transform.SetParent(canvasGO.transform);
+        GameObject textGO = new GameObject("GameOverText", typeof(RectTransform));
+        textGO.transform.SetParent(canvasGO.transform, false);
         gameOverText = textGO.AddComponent<TextMeshProUGUI>();
         gameOverText.text = "GAME OVER";
-        gameOverText.fontSize = 96; 
+        gameOverText.fontSize = gameOverTextSize; 
         gameOverText.color = new Color(1f, 1f, 1f, 0f); 
         gameOverText.alignment = TextAlignmentOptions.Center;
         gameOverText.fontStyle = FontStyles.Bold;
-        
         
         TMP_FontAsset liberationFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
         if (liberationFont != null)
         {
             gameOverText.font = liberationFont;
         }
-        else
-        {
-            
 
-        }
-        
-        
-        
         gameOverText.enableVertexGradient = true;
         gameOverText.colorGradient = new VertexGradient(
             new Color(0.9f, 0.9f, 0.9f, 1f),      
@@ -643,18 +755,16 @@ public class GameOverManager : MonoBehaviour
             new Color(0.3f, 0.3f, 0.3f, 1f)       
         );
         
-        
         gameOverText.gameObject.AddComponent<Shadow>().effectColor = new Color(0.05f, 0.05f, 0.05f, 0.6f);
         gameOverText.gameObject.GetComponent<Shadow>().effectDistance = new Vector2(2f, -2f);
-        
         
         gameOverText.gameObject.AddComponent<Outline>().effectColor = new Color(0.15f, 0.15f, 0.15f, 0.4f);
         gameOverText.gameObject.GetComponent<Outline>().effectDistance = new Vector2(1f, -1f);
 
         RectTransform textRect = textGO.GetComponent<RectTransform>();
-        textRect.anchorMin = new Vector2(0.5f, 0.7f);
-        textRect.anchorMax = new Vector2(0.5f, 0.7f);
-        textRect.sizeDelta = new Vector2(400, 100);
+        textRect.anchorMin = new Vector2(0.5f, 0.65f);
+        textRect.anchorMax = new Vector2(0.5f, 0.65f);
+        textRect.sizeDelta = new Vector2(800, 200);
         textRect.anchoredPosition = Vector2.zero;
 
         
@@ -676,110 +786,110 @@ public class GameOverManager : MonoBehaviour
         
         GameObject buttonContainer = new GameObject("ButtonContainer", typeof(RectTransform));
         buttonContainer.transform.SetParent(canvasGO.transform, false);
+        buttonCanvasGroup = buttonContainer.AddComponent<CanvasGroup>();
+        buttonCanvasGroup.alpha = 0f;
 
         RectTransform containerRect = buttonContainer.GetComponent<RectTransform>();
-        containerRect.anchorMin = new Vector2(0.5f, 0.3f);
-        containerRect.anchorMax = new Vector2(0.5f, 0.3f);
-        containerRect.sizeDelta = new Vector2(400, 150);
+        containerRect.anchorMin = new Vector2(0.5f, 0.35f);
+        containerRect.anchorMax = new Vector2(0.5f, 0.35f);
+        containerRect.sizeDelta = new Vector2(600, 300);
         containerRect.anchoredPosition = Vector2.zero;
 
         
-        GameObject continueButtonGO = new GameObject("ContinueButton");
-        continueButtonGO.transform.SetParent(buttonContainer.transform);
-        continueButton = continueButtonGO.AddComponent<Button>();
-        
-        Image continueImage = continueButtonGO.AddComponent<Image>();
-
-        
-        Texture2D buttonGrungeTexture = Resources.Load<Texture2D>("Dark UI/Textures/Grunge/Background 3");
-        if (buttonGrungeTexture != null)
+        if (retryButton == null)
         {
+            GameObject continueButtonGO = new GameObject("ContinueButton", typeof(RectTransform));
+            continueButtonGO.transform.SetParent(buttonContainer.transform, false);
+            internalRetryButton = continueButtonGO.AddComponent<Button>();
             
-            Sprite grungeSprite = Sprite.Create(
-                buttonGrungeTexture,
-                new Rect(0, 0, buttonGrungeTexture.width, buttonGrungeTexture.height),
-                new Vector2(0.5f, 0.5f));
-            continueImage.sprite = grungeSprite;
-            continueImage.type = Image.Type.Sliced;
-            continueImage.color = Color.white;
+            Image continueImage = continueButtonGO.AddComponent<Image>();
+
+            Texture2D buttonGrungeTexture = Resources.Load<Texture2D>("Dark UI/Textures/Grunge/Background 3");
+            if (buttonGrungeTexture != null)
+            {
+                Sprite grungeSprite = Sprite.Create(
+                    buttonGrungeTexture,
+                    new Rect(0, 0, buttonGrungeTexture.width, buttonGrungeTexture.height),
+                    new Vector2(0.5f, 0.5f));
+                continueImage.sprite = grungeSprite;
+                continueImage.type = Image.Type.Sliced;
+                continueImage.color = Color.white;
+            }
+            else
+            {
+                continueImage.color = new Color(0.2f, 0.2f, 0.2f, 1f);
+            }
+
+            internalRetryButton.targetGraphic = continueImage;
+
+            RectTransform continueRect = continueButtonGO.GetComponent<RectTransform>();
+            continueRect.anchorMin = new Vector2(0.1f, 0.55f);
+            continueRect.anchorMax = new Vector2(0.9f, 0.85f);
+            continueRect.sizeDelta = Vector2.zero;
+            continueRect.anchoredPosition = Vector2.zero;
+
+            GameObject continueTextGO = new GameObject("ContinueText", typeof(RectTransform));
+            continueTextGO.transform.SetParent(continueButtonGO.transform, false);
+            TextMeshProUGUI continueText = continueTextGO.AddComponent<TextMeshProUGUI>();
+            continueText.text = "CONTINUE";
+            continueText.fontSize = 32;
+            continueText.color = Color.white;
+            continueText.alignment = TextAlignmentOptions.Center;
+
+            RectTransform continueTextRect = continueTextGO.GetComponent<RectTransform>();
+            continueTextRect.anchorMin = Vector2.zero;
+            continueTextRect.anchorMax = Vector2.one;
+            continueTextRect.sizeDelta = Vector2.zero;
+            continueTextRect.anchoredPosition = Vector2.zero;
         }
-        else
+
+        
+        if (quitButton == null)
         {
-            continueImage.color = new Color(0.9f, 0.9f, 0.9f, 1f);
+            GameObject quitButtonGO = new GameObject("QuitButton", typeof(RectTransform));
+            quitButtonGO.transform.SetParent(buttonContainer.transform, false);
+            internalQuitButton = quitButtonGO.AddComponent<Button>();
+            
+            Image quitImage = quitButtonGO.AddComponent<Image>();
+
+            Texture2D buttonGrungeTexture = Resources.Load<Texture2D>("Dark UI/Textures/Grunge/Background 3");
+            if (buttonGrungeTexture != null)
+            {
+                Sprite grungeSpriteQuit = Sprite.Create(
+                    buttonGrungeTexture,
+                    new Rect(0, 0, buttonGrungeTexture.width, buttonGrungeTexture.height),
+                    new Vector2(0.5f, 0.5f));
+                quitImage.sprite = grungeSpriteQuit;
+                quitImage.type = Image.Type.Sliced;
+                quitImage.color = Color.white;
+            }
+            else
+            {
+                quitImage.color = new Color(0.2f, 0.2f, 0.2f, 1f);
+            }
+
+            internalQuitButton.targetGraphic = quitImage;
+
+            RectTransform quitRect = quitButtonGO.GetComponent<RectTransform>();
+            quitRect.anchorMin = new Vector2(0.1f, 0.15f);
+            quitRect.anchorMax = new Vector2(0.9f, 0.45f);
+            quitRect.sizeDelta = Vector2.zero;
+            quitRect.anchoredPosition = Vector2.zero;
+
+            GameObject quitTextGO = new GameObject("QuitText", typeof(RectTransform));
+            quitTextGO.transform.SetParent(quitButtonGO.transform, false);
+            TextMeshProUGUI quitText = quitTextGO.AddComponent<TextMeshProUGUI>();
+            quitText.text = "QUIT TO MENU";
+            quitText.fontSize = 32;
+            quitText.color = Color.white;
+            quitText.alignment = TextAlignmentOptions.Center;
+
+            RectTransform quitTextRect = quitTextGO.GetComponent<RectTransform>();
+            quitTextRect.anchorMin = Vector2.zero;
+            quitTextRect.anchorMax = Vector2.one;
+            quitTextRect.sizeDelta = Vector2.zero;
+            quitTextRect.anchoredPosition = Vector2.zero;
         }
-
-        continueButton.targetGraphic = continueImage;
-
-        RectTransform continueRect = continueButtonGO.GetComponent<RectTransform>();
-        continueRect.anchorMin = new Vector2(0.1f, 0.6f);
-        continueRect.anchorMax = new Vector2(0.9f, 0.9f);
-        continueRect.sizeDelta = Vector2.zero;
-        continueRect.anchoredPosition = Vector2.zero;
-
-        
-        GameObject continueTextGO = new GameObject("ContinueText");
-        continueTextGO.transform.SetParent(continueButtonGO.transform);
-        TextMeshProUGUI continueText = continueTextGO.AddComponent<TextMeshProUGUI>();
-        continueText.text = "CONTINUE";
-        continueText.fontSize = 24;
-        continueText.color = Color.white;
-        continueText.alignment = TextAlignmentOptions.Center;
-
-        RectTransform continueTextRect = continueTextGO.GetComponent<RectTransform>();
-        continueTextRect.anchorMin = Vector2.zero;
-        continueTextRect.anchorMax = Vector2.one;
-        continueTextRect.sizeDelta = Vector2.zero;
-        continueTextRect.anchoredPosition = Vector2.zero;
-
-        
-        GameObject quitButtonGO = new GameObject("QuitButton");
-        quitButtonGO.transform.SetParent(buttonContainer.transform);
-        quitButton = quitButtonGO.AddComponent<Button>();
-        
-        Image quitImage = quitButtonGO.AddComponent<Image>();
-
-        
-        if (buttonGrungeTexture != null)
-        {
-            Sprite grungeSpriteQuit = Sprite.Create(
-                buttonGrungeTexture,
-                new Rect(0, 0, buttonGrungeTexture.width, buttonGrungeTexture.height),
-                new Vector2(0.5f, 0.5f));
-            quitImage.sprite = grungeSpriteQuit;
-            quitImage.type = Image.Type.Sliced;
-            quitImage.color = Color.white;
-        }
-        else
-        {
-            quitImage.color = new Color(0.9f, 0.9f, 0.9f, 1f);
-        }
-
-        quitButton.targetGraphic = quitImage;
-
-        RectTransform quitRect = quitButtonGO.GetComponent<RectTransform>();
-        quitRect.anchorMin = new Vector2(0.1f, 0.1f);
-        quitRect.anchorMax = new Vector2(0.9f, 0.4f);
-        quitRect.sizeDelta = Vector2.zero;
-        quitRect.anchoredPosition = Vector2.zero;
-
-        
-        GameObject quitTextGO = new GameObject("QuitText");
-        quitTextGO.transform.SetParent(quitButtonGO.transform);
-        TextMeshProUGUI quitText = quitTextGO.AddComponent<TextMeshProUGUI>();
-        quitText.text = "QUIT";
-        quitText.fontSize = 24;
-        quitText.color = Color.white;
-        quitText.alignment = TextAlignmentOptions.Center;
-
-        RectTransform quitTextRect = quitTextGO.GetComponent<RectTransform>();
-        quitTextRect.anchorMin = Vector2.zero;
-        quitTextRect.anchorMax = Vector2.one;
-        quitTextRect.sizeDelta = Vector2.zero;
-        quitTextRect.anchoredPosition = Vector2.zero;
-
-        
-        continueButton.onClick.AddListener(OnContinueButtonClicked);
-        quitButton.onClick.AddListener(OnQuitButtonClicked);
     }
 
     private void ShowGameOverUI()
@@ -788,6 +898,12 @@ public class GameOverManager : MonoBehaviour
         {
             gameOverCanvas.gameObject.SetActive(true);
             
+            // Focus on the retry button for joystick navigation
+            if (internalRetryButton != null)
+            {
+                internalRetryButton.Select();
+                internalRetryButton.OnSelect(null);
+            }
             
             if (gameOverText != null)
             {
@@ -800,30 +916,35 @@ public class GameOverManager : MonoBehaviour
     {
         if (gameOverText != null)
         {
+            // Ensure buttons are active and set to 0 alpha
+            if (buttonCanvasGroup != null) buttonCanvasGroup.alpha = 0f;
             
             Color textColor = gameOverText.color;
             textColor.a = 0f;
             gameOverText.color = textColor;
             
-            
-            float fadeDuration = 2f;
+            float duration = 1.5f; // Slightly faster
             float elapsed = 0f;
             
-            while (elapsed < fadeDuration)
+            while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
-                float alpha = Mathf.SmoothStep(0f, 1f, elapsed / fadeDuration);
+                float alpha = Mathf.SmoothStep(0f, 1f, elapsed / duration);
                 
                 textColor.a = alpha;
                 gameOverText.color = textColor;
+
+                if (buttonCanvasGroup != null)
+                {
+                    buttonCanvasGroup.alpha = alpha;
+                }
                 
                 yield return null;
             }
             
-            
             textColor.a = 1f;
             gameOverText.color = textColor;
-            
+            if (buttonCanvasGroup != null) buttonCanvasGroup.alpha = 1f;
             
             StartCoroutine(ShakeGameOverText());
         }
@@ -930,12 +1051,14 @@ public class GameOverManager : MonoBehaviour
 
     private void OnQuitButtonClicked()
     {
+        // Stop any pending logic
+        StopAllCoroutines();
         
-        #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-        #else
-            Application.Quit();
-        #endif
+        // Ensure time is back to normal
+        Time.timeScale = 1f;
+        
+        // Load the main menu scene
+        SceneManager.LoadScene("Main Menu");
     }
 
     private IEnumerator FadeInAfterUI()
@@ -970,3 +1093,4 @@ public class GameOverManager : MonoBehaviour
 
     
 }
+

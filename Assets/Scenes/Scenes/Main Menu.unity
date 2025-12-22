@@ -733,7 +733,6 @@ MonoBehaviour:
   thunderDelayRange: {x: 0.5, y: 3}
   flashCount: 3
   individualFlashDuration: 0.05
-  intensityVariation: 0.3
 --- !u!4 &29260114
 Transform:
   m_ObjectHideFlags: 0
@@ -2732,6 +2731,7 @@ Transform:
   - {fileID: 797618616}
   - {fileID: 29498674}
   - {fileID: 846319334}
+  - {fileID: 1561943411}
   - {fileID: 289978435}
   - {fileID: 692080688}
   m_Father: {fileID: 0}
@@ -22301,6 +22301,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: DavinciPuerta
       objectReference: {fileID: 0}
+    - target: {fileID: 4865064391339405807, guid: 59488e5e3cc6cae428e3abecf2cefaa6, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.032020535
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -30723,8 +30727,8 @@ Transform:
   m_GameObject: {fileID: 1082836792}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 2.1038933, y: 3.9720001, z: -1.181}
-  m_LocalScale: {x: 6.002081, y: 0.4659315, z: 1.0707}
+  m_LocalPosition: {x: 1.39, y: 3.86, z: -1.181}
+  m_LocalScale: {x: 5.928971, y: 0.5341071, z: 1.227366}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 90507677}
@@ -48908,6 +48912,112 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sun: {fileID: 0}
   depthOfFieldTarget: {fileID: 0}
+--- !u!1 &1561943410
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1561943411}
+  - component: {fileID: 1561943414}
+  - component: {fileID: 1561943413}
+  - component: {fileID: 1561943412}
+  m_Layer: 0
+  m_Name: Quad (5)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1561943411
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1561943410}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -2.8643804, y: 3.176, z: 1.31}
+  m_LocalScale: {x: 24.488922, y: 9.351823, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 90507677}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!64 &1561943412
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1561943410}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &1561943413
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1561943410}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 45babb6d7b225a74d9b05ade56afb589, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1561943414
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1561943410}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &1565518408
 GameObject:
   m_ObjectHideFlags: 0
@@ -51095,7 +51205,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0.00090026855}
+  m_AnchoredPosition: {x: 0, y: -0.0009613037}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &1666185197
@@ -55001,7 +55111,7 @@ RectTransform:
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 300, y: 180}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: 0.34, y: 0.5}
 --- !u!114 &1842219383
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -57125,7 +57235,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0.000869751}
+  m_AnchoredPosition: {x: 0, y: -0.00091552734}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &1966672884
@@ -58480,7 +58590,6 @@ GameObject:
   - component: {fileID: 2041088071}
   - component: {fileID: 2041088070}
   - component: {fileID: 2041088069}
-  - component: {fileID: 2041088068}
   - component: {fileID: 2041088067}
   - component: {fileID: 2041088066}
   m_Layer: 1
@@ -58520,7 +58629,6 @@ MonoBehaviour:
   thunderDelayRange: {x: 0.5, y: 3}
   flashCount: 3
   individualFlashDuration: 0.05
-  intensityVariation: 0.3
 --- !u!82 &2041088067
 AudioSource:
   m_ObjectHideFlags: 0
@@ -58617,14 +58725,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!81 &2041088068
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2041088065}
-  m_Enabled: 1
 --- !u!114 &2041088069
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -60849,7 +60949,6 @@ MonoBehaviour:
   thunderDelayRange: {x: 0.5, y: 3}
   flashCount: 3
   individualFlashDuration: 0.05
-  intensityVariation: 0.3
 --- !u!1 &2134541821
 GameObject:
   m_ObjectHideFlags: 0

@@ -23,7 +23,6 @@ public class PauseController : MonoBehaviour
 
     [Header("Auto-Setup")]
     [SerializeField] private bool findPlayersAutomatically = true;
-    [SerializeField] private bool createPauseUIIfNeeded = false;
 
     [Header("Joystick Navigation")]
     [SerializeField] private float navigationThreshold = 0.5f;
@@ -44,7 +43,6 @@ public class PauseController : MonoBehaviour
     [Header("Blur Effect")]
     [SerializeField] private Volume blurVolume; 
     [SerializeField] private float blurIntensity = 5f; 
-    [SerializeField] private float blurTransitionSpeed = 3f; 
     private DepthOfField depthOfField;
 
     [Header("Audio Settings")]
@@ -66,12 +64,9 @@ public class PauseController : MonoBehaviour
     [SerializeField] private float transitionDuration = 0.3f;
     [SerializeField] private bool blockInputDuringTransition = true;
     private bool isTransitioning = false;
-    private Coroutine currentTransition = null;
 
     [Header("Validation Settings")]
-    [SerializeField] private bool validateGameState = true;
     [SerializeField] private bool preventOverlap = true;
-    [SerializeField] private bool enableDebugMode = false;
 
 void Start()
     {
@@ -91,17 +86,13 @@ void Start()
     void InitializePauseSystem()
     {
         isTransitioning = false;
-        currentTransition = null;
         
         if (preventOverlap)
         {
             canNavigate = false;
         }
         
-        if (validateGameState)
-        {
-            ValidateUIReferences();
-        }
+        ValidateUIReferences();
     }
     
     void ValidateInitialState()
@@ -339,7 +330,7 @@ void HighlightButton(int index)
                 EventSystem.current.SetSelectedGameObject(pauseButtons[index].gameObject);
             }
         }
-        catch (System.Exception e)
+        catch (System.Exception)
         {
 
         }

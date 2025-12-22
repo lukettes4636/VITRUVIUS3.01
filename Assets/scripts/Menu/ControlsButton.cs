@@ -335,7 +335,6 @@ namespace VITRUVIUS.Menu
     private Coroutine currentTransition;
     
     [Header("Input Validation")]
-    [SerializeField] private bool validateGameState = true;
     [SerializeField] private bool blockInputDuringTransition = true;
 
 

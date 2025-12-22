@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.VFX;
 using System.Reflection;
 using System.Linq; 
@@ -52,10 +52,21 @@ public class PlayerNoiseEmitter : MonoBehaviour
     [Header("Input para Toggle de Noise Ring")]
     [SerializeField] private InputActionReference toggleNoiseRingAction; 
 
+    [Header("Audio")]
+    public AudioSource audioSource;
+    public AudioClip ringOnClip;
+    public AudioClip ringOffClip;
+    [Range(0f, 1f)] public float audioVolume = 0.5f;
+    public float ringOnPitch = 1.2f;
+    public float ringOffPitch = 0.8f;
+
     void Awake()
     {
         controller = GetComponent<CharacterController>();
         InitializeReflection();
+
+        if (audioSource == null)
+            audioSource = GetComponent<AudioSource>();
 
         if (noiseVFX != null)
         {
@@ -194,6 +205,16 @@ void CalculateLogicRadius()
     public void ToggleRingVisibility()
     {
         isRingVisible = !isRingVisible;
+        
+        if (audioSource != null)
+        {
+            AudioClip clipToPlay = isRingVisible ? ringOnClip : ringOffClip;
+            if (clipToPlay != null)
+            {
+                audioSource.pitch = isRingVisible ? ringOnPitch : ringOffPitch;
+                audioSource.PlayOneShot(clipToPlay, audioVolume);
+            }
+        }
     }
 
     void UpdateVFX()
@@ -231,3 +252,4 @@ void CalculateLogicRadius()
         Gizmos.DrawWireSphere(transform.position, currentNoiseRadius);
     }
 }
+

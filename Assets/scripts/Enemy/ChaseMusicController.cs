@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class ChaseMusicController : MonoBehaviour
 {
@@ -20,11 +20,8 @@ public class ChaseMusicController : MonoBehaviour
     [SerializeField] private bool hasPlayedOnce = false;
     [SerializeField] private bool isCurrentlyPlaying = false;
     
-    private NemesisAI_Enhanced nemesisAI;
-    
     void Start()
     {
-        nemesisAI = GetComponent<NemesisAI_Enhanced>();
         
         if (musicAudioSource == null)
         {
@@ -159,12 +156,14 @@ public class ChaseMusicController : MonoBehaviour
     
     void OnDrawGizmosSelected()
     {
+        #if UNITY_EDITOR
         if (Application.isEditor)
         {
             string status = hasPlayedOnce ? "Played" : "Ready";
             string playing = isCurrentlyPlaying ? "▶ Playing" : "⏸ Stopped";
             UnityEditor.Handles.Label(transform.position + Vector3.up * 3f, $"Chase Music: {status}\n{playing}");
         }
+        #endif
     }
 }
 

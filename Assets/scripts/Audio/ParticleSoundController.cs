@@ -15,14 +15,14 @@ public class ParticleSoundController : MonoBehaviour
     [Tooltip("Si esta activado, el sonido se escuchara globalmente sin importar la distancia")]
     [SerializeField] private bool globalSound = false;
     
-    private new ParticleSystem particleSystem;
+    private ParticleSystem _particleSystem;
     private AudioSource audioSource;
     private bool wasPlaying = false;
     private Transform playerTransform;
 
     void Awake()
     {
-        particleSystem = GetComponent<ParticleSystem>();
+        _particleSystem = GetComponent<ParticleSystem>();
         audioSource = GetComponent<AudioSource>();
         
         audioSource.playOnAwake = false;
@@ -40,16 +40,16 @@ public class ParticleSoundController : MonoBehaviour
         if (playOnStart && particleSoundClip != null)
         {
             audioSource.clip = particleSoundClip;
-            if (particleSystem.isPlaying)
+            if (_particleSystem.isPlaying)
                 audioSource.Play();
         }
     }
 
     void Update()
     {
-        if (particleSystem == null || audioSource == null) return;
+        if (_particleSystem == null || audioSource == null) return;
 
-        bool isPlaying = particleSystem.isPlaying;
+        bool isPlaying = _particleSystem.isPlaying;
         
         if (isPlaying && !wasPlaying && particleSoundClip != null)
         {
@@ -79,7 +79,7 @@ public class ParticleSoundController : MonoBehaviour
     {
         particleSoundClip = newClip;
         audioSource.clip = newClip;
-        if (playImmediately && particleSystem.isPlaying && ShouldPlaySound())
+        if (playImmediately && _particleSystem.isPlaying && ShouldPlaySound())
             audioSource.Play();
     }
 

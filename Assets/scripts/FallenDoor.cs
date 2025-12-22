@@ -42,11 +42,6 @@ public class FallenDoor : InteractiveObject
     private AudioSource audioSource;      
     private AudioSource voiceAudioSource; 
 
-    [Header("Haptic Feedback (Max Height)")]
-    [SerializeField] private float rumbleDuration = 0.5f;
-    [SerializeField] private float lowFrequency = 0.5f;
-    [SerializeField] private float highFrequency = 0.5f;
-
     [Header("Haptic Feedback - Drop IMPACT")]
     [SerializeField] private float dropRumbleDuration = 0.3f;
     [SerializeField] private float dropLowFrequency = 1.0f;

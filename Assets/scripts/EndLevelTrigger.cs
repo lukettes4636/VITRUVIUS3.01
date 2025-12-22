@@ -132,7 +132,7 @@ public class EndLevelTrigger : MonoBehaviour
                 }
             }
         }
-        catch (Exception e)
+        catch (Exception)
         {
 
         }
@@ -314,7 +314,7 @@ public class EndLevelTrigger : MonoBehaviour
                 SceneLoadManager.Instance.LoadScene(sceneName);
                 usedManager = true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
 
             }
@@ -330,7 +330,7 @@ public class EndLevelTrigger : MonoBehaviour
         {
             asyncOp = SceneManager.LoadSceneAsync(sceneName);
         }
-        catch (Exception e)
+        catch (Exception)
         {
 
             yield break;

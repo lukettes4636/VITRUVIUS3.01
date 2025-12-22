@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(EnemySenses), typeof(EnemyMotor), typeof(EnemyVisuals))]
@@ -47,7 +47,6 @@ public class EnemyBrain : MonoBehaviour
     private enum State { Sleeping, Eating, Patrol, Investigating, Chasing, Attacking, Transitioning, Dead }
     [SerializeField] private State currentState;
 
-    private bool hasAwakened = false;
     private bool isWaitingAtPatrol = false;
     private bool hasShownFirstDetection = false;
     private float lastReDetectionTime = -999f;
@@ -100,7 +99,6 @@ public class EnemyBrain : MonoBehaviour
                 break;
             case InitialState.Patrol:
                 currentState = State.Patrol;
-                hasAwakened = true;
                 visuals.SetPassiveState(0);
                 
                 GoToNextPatrolPoint();
@@ -853,7 +851,6 @@ public class EnemyBrain : MonoBehaviour
 
     void WakeUp()
     {
-        hasAwakened = true;
 
         currentState = State.Transitioning;
         if (senses.CurrentNoisyObject != null && senses.CurrentPlayer == null && senses.CurrentNPCTarget == null)

@@ -42,16 +42,7 @@ namespace Michsky.UI.Dark
 
             UnityEngine.UI.Image img = introObj.AddComponent<UnityEngine.UI.Image>();
             Texture2D tex = null;
-            #if UNITY_EDITOR
-            {
-                var editorTex = UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/FL3.png");
-                if (editorTex != null) tex = editorTex;
-            }
-            #endif
-            if (tex == null)
-            {
-                tex = Resources.Load<Texture2D>("Intro/FL3");
-            }
+            tex = Resources.Load<Texture2D>("Intro/FL3");
             if (tex != null)
             {
                 Sprite s = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
