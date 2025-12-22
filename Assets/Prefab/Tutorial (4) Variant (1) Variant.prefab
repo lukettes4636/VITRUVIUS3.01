@@ -1,0 +1,131 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &6851573026002821109
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 839008273105003031, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 5.08195
+      objectReference: {fileID: 0}
+    - target: {fileID: 839008273105003031, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 5.08195
+      objectReference: {fileID: 0}
+    - target: {fileID: 839008273105003031, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 5.08195
+      objectReference: {fileID: 0}
+    - target: {fileID: 839008273105003031, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 839008273105003031, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 839008273105003031, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 839008273105003031, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 839008273105003031, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 63
+      objectReference: {fileID: 0}
+    - target: {fileID: 839008273105003031, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 469
+      objectReference: {fileID: 0}
+    - target: {fileID: 2783186740243597182, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_text
+      value: 'Press    to activate NOISE RING '
+      objectReference: {fileID: 0}
+    - target: {fileID: 2783186740243597182, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_fontStyle
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2783186740243597182, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_lineSpacing
+      value: 15.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2783186740243597182, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_characterSpacing
+      value: 18.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5731976437165010846, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_Name
+      value: Tutorial (4) Variant (1) Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 6244671188274656093, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2.7802851
+      objectReference: {fileID: 0}
+    - target: {fileID: 6244671188274656093, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.0577638
+      objectReference: {fileID: 0}
+    - target: {fileID: 6244671188274656093, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.2233038
+      objectReference: {fileID: 0}
+    - target: {fileID: 6244671188274656093, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 27.03
+      objectReference: {fileID: 0}
+    - target: {fileID: 6244671188274656093, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.000015258789
+      objectReference: {fileID: 0}
+    - target: {fileID: 6244671188274656093, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -64.45
+      objectReference: {fileID: 0}
+    - target: {fileID: 6244671188274656093, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6244671188274656093, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6244671188274656093, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6244671188274656093, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6244671188274656093, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6244671188274656093, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6244671188274656093, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7758757347492028946, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: smoothness
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7758757347492028946, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}
+      propertyPath: displayText
+      value: Push     NOISE RING
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 96185b872f8c1b443bcc37b69f69895e, type: 3}

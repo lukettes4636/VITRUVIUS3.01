@@ -478,6 +478,37 @@ public class EndLevelTrigger : MonoBehaviour
                 if (btn == null) btn = continueButtonObject.GetComponentInChildren<Button>();
             }
 
+            // Ensure button visuals
+            Image btnImg = continueButtonObject.GetComponent<Image>();
+            if (btnImg != null)
+            {
+                 // Ensure it's visible even if sprite is missing
+                 if (btnImg.sprite == null) 
+                 {
+                     btnImg.sprite = null; // Clear potential broken reference
+                     btnImg.color = new Color(0.9f, 0.9f, 0.9f, 1f);
+                 }
+            }
+
+            // Ensure button text
+            TextMeshProUGUI btnText = continueButtonObject.GetComponentInChildren<TextMeshProUGUI>();
+            if (btnText == null)
+            {
+                 GameObject textObj = new GameObject("Text");
+                 textObj.transform.SetParent(continueButtonObject.transform, false);
+                 btnText = textObj.AddComponent<TextMeshProUGUI>();
+                 RectTransform textRect = textObj.GetComponent<RectTransform>();
+                 textRect.anchorMin = Vector2.zero;
+                 textRect.anchorMax = Vector2.one;
+                 textRect.sizeDelta = Vector2.zero;
+            }
+            
+            if (string.IsNullOrEmpty(btnText.text)) btnText.text = "QUIT";
+            if (splashFont != null) btnText.font = splashFont;
+            btnText.alignment = TextAlignmentOptions.Center;
+            btnText.fontSize = 32;
+            btnText.color = Color.black;
+
             if (btn != null)
             {
                 btn.onClick.RemoveAllListeners();

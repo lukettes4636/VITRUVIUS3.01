@@ -880,6 +880,7 @@ public class GameOverManager : MonoBehaviour
             quitTextGO.transform.SetParent(quitButtonGO.transform, false);
             TextMeshProUGUI quitText = quitTextGO.AddComponent<TextMeshProUGUI>();
             quitText.text = "QUIT TO MENU";
+            if (liberationFont != null) quitText.font = liberationFont;
             quitText.fontSize = 32;
             quitText.color = Color.white;
             quitText.alignment = TextAlignmentOptions.Center;
