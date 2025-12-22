@@ -605,44 +605,6 @@ public class PlayerHealth : MonoBehaviour
 
     }
 
-    public void ForceReviveAt(Vector3 revivePosition)
-    {
-        if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
-        if (healthCanvasGroup != null) healthCanvasGroup.alpha = 0f;
-        if (cameraDelayCoroutine != null)
-        {
-            StopCoroutine(cameraDelayCoroutine);
-            cameraDelayCoroutine = null;
-        }
-        IsIgnoredByCamera = false;
-        foreach (Renderer r in GetComponentsInChildren<Renderer>()) r.enabled = false;
-        foreach (Collider c in GetComponentsInChildren<Collider>()) c.enabled = false;
-        IsDead = false;
-        canRespawn = false;
-        currentHealth = maxHealth;
-        if (playerAnimator != null)
-        {
-            playerAnimator.SetBool("IsDeadAnimator", false);
-            playerAnimator.Rebind();
-            playerAnimator.Update(0f);
-        }
-        if (playerInput != null)
-            playerInput.SwitchCurrentActionMap("Player");
-        if (characterController != null)
-            characterController.enabled = false;
-        transform.position = revivePosition;
-        if (characterController != null)
-            characterController.enabled = true;
-        if (movementScript != null)
-            movementScript.enabled = true;
-        foreach (Renderer r in GetComponentsInChildren<Renderer>()) r.enabled = true;
-        foreach (Collider c in GetComponentsInChildren<Collider>()) c.enabled = true;
-        if (uiController != null)
-            uiController.HideRespawnPanel();
-        UpdateUI();
-        OnHealthChanged?.Invoke(currentHealth, maxHealth);
-    }
-
     
     
     

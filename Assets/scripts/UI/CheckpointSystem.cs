@@ -6,30 +6,24 @@ using System.Collections.Generic;
 /// Checkpoint system for the new GameOver manager
 /// Handles saving and loading of game state
 /// </summary>
-    public class CheckpointSystem : MonoBehaviour
+public class CheckpointSystem : MonoBehaviour
+{
+    [System.Serializable]
+    public class CheckpointData
     {
-        [System.Serializable]
-        public class CheckpointData
+        public string sceneName;
+        public Vector3 playerPosition;
+        public Quaternion playerRotation;
+        public int playerHealth;
+        public int playerScore;
+        public float gameTime;
+        public Dictionary<string, object> customData;
+        
+        public CheckpointData()
         {
-            public string sceneName;
-            [System.Serializable]
-            public class PlayerSnapshot
-            {
-                public int playerID;
-                public Vector3 position;
-                public Quaternion rotation;
-            }
-            public List<PlayerSnapshot> players = new List<PlayerSnapshot>();
-            public int playerHealth;
-            public int playerScore;
-            public float gameTime;
-            public Dictionary<string, object> customData;
-            
-            public CheckpointData()
-            {
-                customData = new Dictionary<string, object>();
-            }
+            customData = new Dictionary<string, object>();
         }
+    }
     
     private static CheckpointSystem instance;
     public static CheckpointSystem Instance
@@ -72,30 +66,29 @@ using System.Collections.Generic;
     /// <summary>
     /// Saves the current game state as a checkpoint
     /// </summary>
-        public void SaveCheckpoint()
+    public void SaveCheckpoint()
+    {
+        CheckpointData checkpoint = new CheckpointData();
+        
+        // Save current scene
+        checkpoint.sceneName = SceneManager.GetActiveScene().name;
+        
+        // Save player data (you'll need to adapt this to your player system)
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
         {
-            CheckpointData checkpoint = new CheckpointData();
+            checkpoint.playerPosition = player.transform.position;
+            checkpoint.playerRotation = player.transform.rotation;
             
-            // Save current scene
-            checkpoint.sceneName = SceneManager.GetActiveScene().name;
-            
-            // Save all players by PlayerIdentifier
-            var identifiers = FindObjectsOfType<PlayerIdentifier>();
-            foreach (var id in identifiers)
-            {
-                var snap = new CheckpointData.PlayerSnapshot
-                {
-                    playerID = id.playerID,
-                    position = id.transform.position,
-                    rotation = id.transform.rotation
-                };
-                checkpoint.players.Add(snap);
-            }
-            
-            checkpoint.gameTime = Time.time;
-            
-            lastCheckpoint = checkpoint;
-            checkpointHistory.Add(checkpoint);
+            // Add your player health/score components here
+            // Example: checkpoint.playerHealth = player.GetComponent<PlayerHealth>().currentHealth;
+            // Example: checkpoint.playerScore = player.GetComponent<PlayerScore>().currentScore;
+        }
+        
+        checkpoint.gameTime = Time.time;
+        
+        lastCheckpoint = checkpoint;
+        checkpointHistory.Add(checkpoint);
         
         // Keep only the last MAX_CHECKPOINTS
         if (checkpointHistory.Count > MAX_CHECKPOINTS)
@@ -103,79 +96,64 @@ using System.Collections.Generic;
             checkpointHistory.RemoveAt(0);
         }
         
-            var pos = checkpoint.players.Count > 0 ? checkpoint.players[0].position : Vector3.zero;
-            Debug.Log($"Checkpoint saved: {checkpoint.sceneName} at position {pos}");
+        Debug.Log($"Checkpoint saved: {checkpoint.sceneName} at position {checkpoint.playerPosition}");
+    }
+    
+    /// <summary>
+    /// Loads the last checkpoint
+    /// </summary>
+    public void LoadLastCheckpoint()
+    {
+        if (lastCheckpoint == null)
+        {
+            Debug.LogWarning("No checkpoint available to load");
+            return;
         }
         
-        /// <summary>
-        /// Loads the last checkpoint
-        /// </summary>
-        public void LoadLastCheckpoint()
-        {
-            if (lastCheckpoint == null)
-            {
-                Debug.LogWarning("No checkpoint available to load");
-                return;
-            }
-            
-            StartCoroutine(LoadCheckpointCoroutine(lastCheckpoint));
-        }
-        
-        public System.Collections.IEnumerator LoadLastCheckpointRoutine()
-        {
-            if (lastCheckpoint == null)
-            {
-                Debug.LogWarning("No checkpoint available to load");
-                yield break;
-            }
-            yield return LoadCheckpointCoroutine(lastCheckpoint);
-        }
+        StartCoroutine(LoadCheckpointCoroutine(lastCheckpoint));
+    }
     
     /// <summary>
     /// Loads a specific checkpoint
     /// </summary>
-        private System.Collections.IEnumerator LoadCheckpointCoroutine(CheckpointData checkpoint)
+    private System.Collections.IEnumerator LoadCheckpointCoroutine(CheckpointData checkpoint)
+    {
+        Debug.Log($"Loading checkpoint: {checkpoint.sceneName}");
+        
+        // Load the scene if it's different from current
+        if (SceneManager.GetActiveScene().name != checkpoint.sceneName)
         {
-            Debug.Log($"Loading checkpoint: {checkpoint.sceneName}");
-            
-            // Load the scene if it's different from current
-            if (SceneManager.GetActiveScene().name != checkpoint.sceneName)
-            {
-                AsyncOperation loadOperation = SceneManager.LoadSceneAsync(checkpoint.sceneName);
-                yield return new WaitUntil(() => loadOperation.isDone);
-            }
-            
-            // Restore player state
-            RestorePlayerState(checkpoint);
-            
-            Debug.Log("Checkpoint loaded successfully");
+            AsyncOperation loadOperation = SceneManager.LoadSceneAsync(checkpoint.sceneName);
+            yield return new WaitUntil(() => loadOperation.isDone);
         }
+        
+        // Restore player state
+        RestorePlayerState(checkpoint);
+        
+        Debug.Log("Checkpoint loaded successfully");
+    }
     
     /// <summary>
     /// Restores player state from checkpoint
     /// </summary>
-        private void RestorePlayerState(CheckpointData checkpoint)
+    private void RestorePlayerState(CheckpointData checkpoint)
+    {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
         {
-            var identifiers = FindObjectsOfType<PlayerIdentifier>();
-            foreach (var id in identifiers)
-            {
-                var snap = checkpoint.players.Find(s => s.playerID == id.playerID);
-                if (snap != null)
-                {
-                    var ph = id.GetComponent<PlayerHealth>();
-                    if (ph != null)
-                    {
-                        ph.ForceReviveAt(snap.position);
-                        id.transform.rotation = snap.rotation;
-                    }
-                    else
-                    {
-                        id.transform.position = snap.position;
-                        id.transform.rotation = snap.rotation;
-                    }
-                }
-            }
+            // Restore position and rotation
+            player.transform.position = checkpoint.playerPosition;
+            player.transform.rotation = checkpoint.playerRotation;
+            
+            // Restore health and score (adapt to your player system)
+            // Example: player.GetComponent<PlayerHealth>().currentHealth = checkpoint.playerHealth;
+            // Example: player.GetComponent<PlayerScore>().currentScore = checkpoint.playerScore;
         }
+        else
+        {
+            Debug.LogWarning("Player not found when restoring checkpoint");
+        }
+    }
     
     /// <summary>
     /// Checks if a checkpoint is available

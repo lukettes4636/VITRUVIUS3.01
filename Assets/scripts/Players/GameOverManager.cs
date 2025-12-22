@@ -11,56 +11,82 @@ using UnityEngine.EventSystems;
 public class GameOverManager : MonoBehaviour
 {
     [Header("Settings")]
-    [Tooltip("Time to wait before showing Game Over UI.")]
-    [SerializeField] private float gameOverDelay = 2.0f;
+    [Tooltip("Time to wait before reloading the scene after Game Over logic triggers.")]
+    [SerializeField] private float reloadDelay = 3.0f;
     [Tooltip("Duration of the fade to black effect.")]
     [SerializeField] private float fadeDuration = 1.5f;
-    [Tooltip("Canvas sorting order for Game Over (higher = on top of everything).")]
-    [SerializeField] private int gameOverCanvasSortingOrder = 9999;
+    [Tooltip("Intensity of the shake effect for the GAME OVER text.")]
+    [SerializeField] private float shakeIntensity = 3f; 
+    [Tooltip("Duration of the shake effect.")]
+    [SerializeField] private float shakeDuration = 1.5f;
+    [Tooltip("Whether to automatically pause the game when Game Over is triggered.")]
+    [SerializeField] private bool autoPauseOnGameOver = false; 
+    [Tooltip("Font size for the GAME OVER text. Default is 67 (approx 30% smaller than original 96).")]
+    [SerializeField] private float gameOverTextSize = 67f; 
 
-    [Header("UI References - ASIGNAR EN EL INSPECTOR")]
-    [Tooltip("El Canvas principal del Game Over (desactivado por defecto).")]
-    [SerializeField] private Canvas gameOverCanvas;
-    [Tooltip("El Canvas o Image para el fade a negro.")]
-    [SerializeField] private Image fadeImage;
-    [Tooltip("El texto 'GAME OVER'.")]
-    [SerializeField] private TextMeshProUGUI gameOverText;
-    [Tooltip("Bot�n de Continuar/Reintentar.")]
-    [SerializeField] private Button retryButton;
-    [Tooltip("Bot�n de Salir al Men�.")]
-    [SerializeField] private Button quitButton;
-    [Tooltip("(Opcional) CanvasGroup para animar los botones.")]
-    [SerializeField] private CanvasGroup buttonCanvasGroup;
-
-    [Header("NPC & Players References")]
+    [Header("References")]
     [Tooltip("The NPC that must survive. If null, will try to auto-find by tag.")]
     [SerializeField] private NPCHealth npcToProtect;
     [Tooltip("Tag to search for the NPC. Default: NPC")]
     [SerializeField] private string npcTag = "NPC";
+    
     [Tooltip("The players in the scene. If empty, will try to auto-find.")]
     [SerializeField] private List<PlayerHealth> players;
 
+    private int deadPlayersCount = 0;
+    private bool gameOverTriggered = false;
+    private Canvas fadeCanvas;
+    private Image fadeImage;
+    
+    
+    [Header("UI Assignment")]
+    [Tooltip("The Retry button. If null, one will be created programmatically.")]
+    [SerializeField] private Button retryButton;
+    [Tooltip("The Quit (Respawn) button. If null, one will be created programmatically.")]
+    [SerializeField] private Button quitButton;
+    
+    private Canvas gameOverCanvas;
+    private TextMeshProUGUI gameOverText;
+    private Button internalRetryButton;
+    private Button internalQuitButton;
+    private CanvasGroup buttonCanvasGroup;
+    
+    
     [Header("UI Audio")]
     [Tooltip("Sound played when navigating between buttons.")]
     [SerializeField] private AudioClip hoverSound;
     [Tooltip("Sound played when a button is clicked.")]
     [SerializeField] private AudioClip clickSound;
-
     private AudioSource uiAudioSource;
-    private int deadPlayersCount = 0;
-    private bool gameOverTriggered = false;
+
     private float originalTimeScale = 1f;
     private bool wasGamePaused = false;
-    private int selectedButtonIndex = 0;
-    private float lastNavigateTime = 0f;
-    private float navigateRepeatDelay = 0.2f;
-    private List<UnityEngine.InputSystem.PlayerInput> uiPlayerInputs = new List<UnityEngine.InputSystem.PlayerInput>();
-    private bool hasSceneSnapshot = false;
-    private List<(Transform t, Vector3 pos, Quaternion rot)> enemySnapshot = new List<(Transform, Vector3, Quaternion)>();
-    private List<(SecurityDoor door, bool open)> securityDoorSnapshot = new List<(SecurityDoor, bool)>();
-    private List<(DoorWithKeyCard door, bool locked, bool open)> keyCardDoorSnapshot = new List<(DoorWithKeyCard, bool, bool)>();
 
     public static GameOverManager Instance { get; private set; }
+
+    void Update()
+    {
+        if (!gameOverTriggered || gameOverCanvas == null || !gameOverCanvas.gameObject.activeInHierarchy) return;
+
+        // Check for any joystick button press to submit the currently selected button
+        Gamepad gamepad = Gamepad.current;
+        if (gamepad != null && gamepad.allControls.Any(c => c is UnityEngine.InputSystem.Controls.ButtonControl button && button.wasPressedThisFrame))
+        {
+            // If the user presses any button, we find what's selected and invoke it
+            if (EventSystem.current != null)
+            {
+                GameObject selected = EventSystem.current.currentSelectedGameObject;
+                if (selected != null)
+                {
+                    Button btn = selected.GetComponent<Button>();
+                    if (btn != null)
+                    {
+                        btn.onClick.Invoke();
+                    }
+                }
+            }
+        }
+    }
 
     void Awake()
     {
@@ -74,98 +100,70 @@ public class GameOverManager : MonoBehaviour
             return;
         }
 
-        // Setup audio
         uiAudioSource = gameObject.AddComponent<AudioSource>();
         uiAudioSource.playOnAwake = false;
-        uiAudioSource.spatialBlend = 0f;
+        uiAudioSource.spatialBlend = 0f; // 2D Sound
         uiAudioSource.ignoreListenerPause = true;
     }
 
     void Start()
     {
-        // Verificar referencias cr�ticas
-        ValidateUIReferences();
-
-        // Configurar el sorting order del canvas
-        if (gameOverCanvas != null)
-        {
-            gameOverCanvas.sortingOrder = gameOverCanvasSortingOrder;
-            gameOverCanvas.gameObject.SetActive(false);
-        }
-
         InitializeReferences();
         SubscribeToEvents();
+        CreateFadeScreen();
+        CreateGameOverUI();
         SetupButtonListeners();
-
-        // Fade in inicial si existe fadeImage
-        if (fadeImage != null)
-        {
-            StartCoroutine(InitialFadeIn());
-        }
-
+        StartCoroutine(InitialFadeIn());
+        
+        
         if (npcToProtect == null)
         {
             StartCoroutine(SearchForNPCLater());
-        }
-
-        Checkpoint.OnCheckpointReached += OnCheckpointReached;
-    }
-
-    void Update()
-    {
-        if (!gameOverTriggered || gameOverCanvas == null || !gameOverCanvas.gameObject.activeInHierarchy)
-            return;
-    }
-
-    private void ValidateUIReferences()
-    {
-        if (gameOverCanvas == null)
-        {
-            Debug.LogError("[GameOverManager] �CANVAS DE GAME OVER NO ASIGNADO! Por favor asigna el Canvas en el Inspector.");
-        }
-
-        if (fadeImage == null)
-        {
-            Debug.LogWarning("[GameOverManager] Fade Image no asignado. No habr� efecto de fade.");
-        }
-
-        if (gameOverText == null)
-        {
-            Debug.LogWarning("[GameOverManager] Game Over Text no asignado.");
-        }
-
-        if (retryButton == null)
-        {
-            Debug.LogWarning("[GameOverManager] Retry Button no asignado.");
-        }
-
-        if (quitButton == null)
-        {
-            Debug.LogWarning("[GameOverManager] Quit Button no asignado.");
         }
     }
 
     private void InitializeReferences()
     {
+        
         if (npcToProtect == null)
         {
             npcToProtect = FindNPCByTag();
+            
             if (npcToProtect == null)
             {
                 npcToProtect = FindObjectOfType<NPCHealth>();
             }
+            
+            if (npcToProtect == null)
+            {
+
+            }
+            else
+            {
+
+            }
         }
 
+        
         if (players == null || players.Count == 0)
         {
             players = new List<PlayerHealth>(FindObjectsOfType<PlayerHealth>());
+            if (players.Count == 0)
+            {
+
+            }
+            else
+            {
+
+            }
         }
     }
 
     private NPCHealth FindNPCByTag()
     {
+        
         GameObject[] npcsWithTag = GameObject.FindGameObjectsWithTag(npcTag);
-
+        
         foreach (GameObject npcObj in npcsWithTag)
         {
             NPCHealth npcHealth = npcObj.GetComponent<NPCHealth>();
@@ -174,7 +172,8 @@ public class GameOverManager : MonoBehaviour
                 return npcHealth;
             }
         }
-
+        
+        
         if (npcTag != "NPC")
         {
             GameObject npcWithDefaultTag = GameObject.FindGameObjectWithTag("NPC");
@@ -183,7 +182,7 @@ public class GameOverManager : MonoBehaviour
                 return npcWithDefaultTag.GetComponent<NPCHealth>();
             }
         }
-
+        
         return null;
     }
 
@@ -205,7 +204,6 @@ public class GameOverManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        Checkpoint.OnCheckpointReached -= OnCheckpointReached;
         if (npcToProtect != null)
         {
             npcToProtect.OnNPCDied -= HandleNPCDeath;
@@ -224,10 +222,15 @@ public class GameOverManager : MonoBehaviour
     {
         if (gameOverTriggered) return;
 
+        
         if (npcToProtect == null)
         {
             npcToProtect = FindNPCByTag();
-            if (npcToProtect == null) return;
+            if (npcToProtect == null)
+            {
+
+                return;
+            }
         }
 
         TriggerGameOver();
@@ -238,89 +241,126 @@ public class GameOverManager : MonoBehaviour
         if (gameOverTriggered) return;
 
         deadPlayersCount++;
-        Debug.Log($"[GameOverManager] Player {playerID} died. Dead count: {deadPlayersCount}/{players.Count}");
 
-        // Solo triggerea game over si AMBOS jugadores est�n muertos
+
         if (deadPlayersCount >= players.Count)
         {
-            Debug.Log("[GameOverManager] All players dead. Triggering Game Over...");
             TriggerGameOver();
         }
     }
 
     public void TriggerGameOver()
     {
-        if (gameOverTriggered) return;
-
         gameOverTriggered = true;
-        Debug.Log("[GameOverManager] Game Over triggered!");
-
-        HideAllRespawnPanels();
-
+        
+        
+        if (autoPauseOnGameOver)
+        {
+            PauseGame();
+        }
+        
         StartCoroutine(GameOverSequence());
     }
-
+    
+    
+    
+    
     private void PauseGame()
     {
         originalTimeScale = Time.timeScale;
         wasGamePaused = Mathf.Approximately(Time.timeScale, 0f);
-
+        
         if (!wasGamePaused)
         {
             Time.timeScale = 0f;
+
         }
-
+        
+        
         DisableAllPlayerInput();
+        
+        
         DisableAllEnemyAI();
+        
+        
         PauseGameAudio();
-
-        Debug.Log("[GameOverManager] Game paused.");
     }
-
+    
+    
+    
+    
+    public void ManualPause()
+    {
+        PauseGame();
+    }
+    
+    public void ManualResume()
+    {
+        ResumeGame();
+    }
+    
     private void ResumeGame()
     {
         if (!wasGamePaused)
         {
             Time.timeScale = originalTimeScale;
+
         }
-
+        
+        
         EnableAllPlayerInput();
+        
+        
         EnableAllEnemyAI();
+        
+        
         ResumeGameAudio();
-
-        Debug.Log("[GameOverManager] Game resumed.");
     }
-
+    
+    
+    
+    
     private void DisableAllPlayerInput()
     {
-        var mov1Scripts = FindObjectsOfType<MovJugador1>();
-        foreach (var mov in mov1Scripts)
+        var playerInputs = FindObjectsOfType<UnityEngine.InputSystem.PlayerInput>();
+        foreach (var input in playerInputs)
         {
-            mov.enabled = false;
+            input.enabled = false;
         }
+        
+        
+        var playerControllers = FindObjectsOfType<PlayerControllerBase>();
+        foreach (var controller in playerControllers)
+        {
+            controller.enabled = false;
+        }
+        
 
-        var mov2Scripts = FindObjectsOfType<MovJugador2>();
-        foreach (var mov in mov2Scripts)
-        {
-            mov.enabled = false;
-        }
     }
-
+    
+    
+    
+    
     private void EnableAllPlayerInput()
     {
-        var mov1Scripts = FindObjectsOfType<MovJugador1>();
-        foreach (var mov in mov1Scripts)
+        var playerInputs = FindObjectsOfType<UnityEngine.InputSystem.PlayerInput>();
+        foreach (var input in playerInputs)
         {
-            mov.enabled = true;
+            input.enabled = true;
         }
+        
+        var playerControllers = FindObjectsOfType<PlayerControllerBase>();
+        foreach (var controller in playerControllers)
+        {
+            controller.enabled = true;
+        }
+        
 
-        var mov2Scripts = FindObjectsOfType<MovJugador2>();
-        foreach (var mov in mov2Scripts)
-        {
-            mov.enabled = true;
-        }
     }
-
+    
+    
+    
+    
     private void DisableAllEnemyAI()
     {
         var navMeshAgents = FindObjectsOfType<UnityEngine.AI.NavMeshAgent>();
@@ -332,7 +372,7 @@ public class GameOverManager : MonoBehaviour
             }
         }
     }
-
+    
     private void EnableAllEnemyAI()
     {
         var navMeshAgents = FindObjectsOfType<UnityEngine.AI.NavMeshAgent>();
@@ -344,19 +384,28 @@ public class GameOverManager : MonoBehaviour
             }
         }
     }
-
+    
+    
+    
+    
     private void PauseGameAudio()
     {
         var audioSources = FindObjectsOfType<AudioSource>();
         foreach (var audioSource in audioSources)
         {
+            
             if (audioSource.GetComponentInParent<Canvas>() == null)
             {
                 audioSource.Pause();
             }
         }
-    }
+        
 
+    }
+    
+    
+    
+    
     private void ResumeGameAudio()
     {
         var audioSources = FindObjectsOfType<AudioSource>();
@@ -367,10 +416,13 @@ public class GameOverManager : MonoBehaviour
                 audioSource.UnPause();
             }
         }
+        
+
     }
 
     public void AssignNPCToProtect(NPCHealth npc)
     {
+        
         if (npcToProtect != null)
         {
             npcToProtect.OnNPCDied -= HandleNPCDeath;
@@ -378,29 +430,27 @@ public class GameOverManager : MonoBehaviour
 
         npcToProtect = npc;
 
+        
         if (npcToProtect != null)
         {
             npcToProtect.OnNPCDied += HandleNPCDeath;
-
+            
+            
             if (npcToProtect.gameObject.tag != npcTag && !string.IsNullOrEmpty(npcTag))
             {
                 npcToProtect.gameObject.tag = npcTag;
+
             }
+            
+
         }
     }
 
     private IEnumerator GameOverSequence()
     {
-        // Fade a negro
-        if (fadeImage != null)
-        {
-            yield return StartCoroutine(FadeToBlack());
-        }
-
-        PauseGame();
-        yield return new WaitForSecondsRealtime(gameOverDelay);
-
-        // Mostrar el UI
+        yield return StartCoroutine(FadeToBlack());
+        yield return new WaitForSeconds(reloadDelay);
+        
         ShowGameOverUI();
     }
 
@@ -408,36 +458,71 @@ public class GameOverManager : MonoBehaviour
     {
         if (fadeImage != null)
         {
-            fadeImage.gameObject.SetActive(true);
+            fadeCanvas.gameObject.SetActive(true);
             Color color = fadeImage.color;
             color.a = 0f;
             fadeImage.color = color;
 
+            
             float elapsed = 0f;
             while (elapsed < fadeDuration)
             {
-                elapsed += Time.unscaledDeltaTime; // Usar unscaled porque el juego est� pausado
+                elapsed += Time.deltaTime;
                 float fadeProgress = elapsed / fadeDuration;
+                
+                
                 float smoothProgress = Mathf.SmoothStep(0f, 1f, fadeProgress);
-
-                color = Color.black;
+                
+                
+                color.r = 0f;
+                color.g = 0f;
+                color.b = 0f;
                 color.a = smoothProgress;
+                
                 fadeImage.color = color;
-
                 yield return null;
             }
-
+            
+            
             color = Color.black;
             color.a = 1f;
             fadeImage.color = color;
         }
+        yield return null;
+    }
+
+    private void CreateFadeScreen()
+    {
+        GameObject canvasGO = new GameObject("FadeCanvas");
+        canvasGO.transform.SetParent(transform);
+        fadeCanvas = canvasGO.AddComponent<Canvas>();
+        fadeCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        fadeCanvas.sortingOrder = 1000;
+        fadeCanvas.gameObject.SetActive(false);
+
+        CanvasScaler scaler = canvasGO.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+
+        GraphicRaycaster raycaster = canvasGO.AddComponent<GraphicRaycaster>();
+
+        GameObject imageGO = new GameObject("FadeImage");
+        imageGO.transform.SetParent(canvasGO.transform);
+        fadeImage = imageGO.AddComponent<Image>();
+        fadeImage.color = Color.black;
+
+        RectTransform rectTransform = fadeImage.GetComponent<RectTransform>();
+        rectTransform.anchorMin = Vector2.zero;
+        rectTransform.anchorMax = Vector2.one;
+        rectTransform.sizeDelta = Vector2.zero;
+        rectTransform.anchoredPosition = Vector2.zero;
     }
 
     private IEnumerator InitialFadeIn()
     {
         if (fadeImage != null)
         {
-            fadeImage.gameObject.SetActive(true);
+            fadeCanvas.gameObject.SetActive(true);
             Color color = fadeImage.color;
             color.a = 1f;
             fadeImage.color = color;
@@ -450,43 +535,133 @@ public class GameOverManager : MonoBehaviour
                 fadeImage.color = color;
                 yield return null;
             }
+            
+            fadeCanvas.gameObject.SetActive(false);
+        }
+        yield return null;
+    }
 
-            fadeImage.gameObject.SetActive(false);
+    private IEnumerator FadeIn()
+    {
+        if (fadeImage != null)
+        {
+            fadeCanvas.gameObject.SetActive(true);
+            Color color = fadeImage.color;
+            color.a = 1f;
+            fadeImage.color = color;
+
+            float elapsed = 0f;
+            while (elapsed < fadeDuration)
+            {
+                elapsed += Time.deltaTime;
+                color.a = 1f - Mathf.Clamp01(elapsed / fadeDuration);
+                fadeImage.color = color;
+                yield return null;
+            }
+            
+            fadeCanvas.gameObject.SetActive(false);
+        }
+        yield return null;
+    }
+
+    private void RespawnAllPlayers()
+    {
+        
+        if (GameManager.Instance != null)
+        {
+            
+            foreach (var player in players)
+            {
+                if (player != null && player.GetComponent<PlayerIdentifier>() != null)
+                {
+                    int playerID = player.GetComponent<PlayerIdentifier>().playerID;
+                    GameManager.Instance.RespawnPlayer(playerID);
+                }
+            }
+        }
+        else
+        {
+            
+            foreach (var player in players)
+            {
+                if (player != null && player.IsDead)
+                {
+                    
+                    player.RestoreState();
+                }
+            }
+        }
+    }
+
+    private void ResetGameOverState()
+    {
+        
+        deadPlayersCount = 0;
+        gameOverTriggered = false;
+        
+        
+        players = new List<PlayerHealth>(FindObjectsOfType<PlayerHealth>());
+        
+        
+        foreach (var player in players)
+        {
+            if (player != null)
+            {
+                player.OnPlayerDied += HandlePlayerDeath;
+            }
         }
     }
 
     private void SetupButtonListeners()
     {
-        if (retryButton != null)
+        internalRetryButton = retryButton != null ? retryButton : internalRetryButton;
+        internalQuitButton = quitButton != null ? quitButton : internalQuitButton;
+
+        if (internalRetryButton != null)
         {
-            retryButton.onClick.RemoveAllListeners();
-            retryButton.onClick.AddListener(() => PlayClickSound());
-            retryButton.onClick.AddListener(OnContinueButtonClicked);
-            AddButtonTriggers(retryButton);
+            internalRetryButton.onClick.RemoveAllListeners();
+            internalRetryButton.onClick.AddListener(() => PlayClickSound());
+            internalRetryButton.onClick.AddListener(OnContinueButtonClicked);
+            AddButtonTriggers(internalRetryButton);
+            
+            internalRetryButton.transition = Selectable.Transition.ColorTint;
+            ColorBlock cb = internalRetryButton.colors;
+            cb.normalColor = new Color(1, 1, 1, 1f);
+            cb.highlightedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+            cb.selectedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+            cb.pressedColor = new Color(0.5f, 0.5f, 0.5f, 1f);
+            internalRetryButton.colors = cb;
         }
 
-        if (quitButton != null)
+        if (internalQuitButton != null)
         {
-            quitButton.onClick.RemoveAllListeners();
-            quitButton.onClick.AddListener(() => PlayClickSound());
-            quitButton.onClick.AddListener(OnQuitButtonClicked);
-            AddButtonTriggers(quitButton);
+            internalQuitButton.onClick.RemoveAllListeners();
+            internalQuitButton.onClick.AddListener(() => PlayClickSound());
+            internalQuitButton.onClick.AddListener(OnQuitButtonClicked);
+            AddButtonTriggers(internalQuitButton);
+            
+            internalQuitButton.transition = Selectable.Transition.ColorTint;
+            ColorBlock cb = internalQuitButton.colors;
+            cb.normalColor = new Color(1, 1, 1, 1f);
+            cb.highlightedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+            cb.selectedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+            cb.pressedColor = new Color(0.5f, 0.5f, 0.5f, 1f);
+            internalQuitButton.colors = cb;
         }
-
-        // Configurar navegaci�n entre botones
-        if (retryButton != null && quitButton != null)
+        
+        if (internalRetryButton != null && internalQuitButton != null)
         {
             Navigation retryNav = new Navigation();
             retryNav.mode = Navigation.Mode.Explicit;
-            retryNav.selectOnDown = quitButton;
-            retryNav.selectOnUp = quitButton;
-            retryButton.navigation = retryNav;
+            retryNav.selectOnDown = internalQuitButton;
+            retryNav.selectOnUp = internalQuitButton;
+            internalRetryButton.navigation = retryNav;
 
             Navigation quitNav = new Navigation();
             quitNav.mode = Navigation.Mode.Explicit;
-            quitNav.selectOnUp = retryButton;
-            quitNav.selectOnDown = retryButton;
-            quitButton.navigation = quitNav;
+            quitNav.selectOnUp = internalRetryButton;
+            quitNav.selectOnDown = internalRetryButton;
+            internalQuitButton.navigation = quitNav;
         }
     }
 
@@ -522,82 +697,310 @@ public class GameOverManager : MonoBehaviour
         }
     }
 
-    private void ShowGameOverUI()
+    private void CreateGameOverUI()
     {
-        if (gameOverCanvas == null)
+        // Ensure EventSystem exists for UI navigation
+         if (EventSystem.current == null)
+         {
+             GameObject eventSystemGO = new GameObject("EventSystem");
+             eventSystemGO.AddComponent<EventSystem>();
+             eventSystemGO.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+         }
+ 
+         GameObject canvasGO = new GameObject("GameOverCanvas");
+        canvasGO.transform.SetParent(transform);
+        gameOverCanvas = canvasGO.AddComponent<Canvas>();
+        gameOverCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        gameOverCanvas.sortingOrder = 1001; 
+        gameOverCanvas.gameObject.SetActive(false);
+
+        CanvasScaler scaler = canvasGO.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+
+        GraphicRaycaster raycaster = canvasGO.AddComponent<GraphicRaycaster>();
+
+        
+        GameObject panelGO = new GameObject("BackgroundPanel", typeof(RectTransform));
+        panelGO.transform.SetParent(canvasGO.transform, false);
+        Image panelImage = panelGO.AddComponent<Image>();
+        panelImage.color = new Color(0f, 0f, 0f, 0.85f); 
+
+        RectTransform panelRect = panelGO.GetComponent<RectTransform>();
+        panelRect.anchorMin = Vector2.zero;
+        panelRect.anchorMax = Vector2.one;
+        panelRect.sizeDelta = Vector2.zero;
+        panelRect.anchoredPosition = Vector2.zero;
+
+        GameObject textGO = new GameObject("GameOverText", typeof(RectTransform));
+        textGO.transform.SetParent(canvasGO.transform, false);
+        gameOverText = textGO.AddComponent<TextMeshProUGUI>();
+        gameOverText.text = "GAME OVER";
+        gameOverText.fontSize = gameOverTextSize; 
+        gameOverText.color = new Color(1f, 1f, 1f, 0f); 
+        gameOverText.alignment = TextAlignmentOptions.Center;
+        gameOverText.fontStyle = FontStyles.Bold;
+        
+        TMP_FontAsset liberationFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
+        if (liberationFont != null)
         {
-            Debug.LogError("[GameOverManager] No se puede mostrar Game Over: Canvas no asignado.");
-            return;
+            gameOverText.font = liberationFont;
         }
 
-        gameOverCanvas.gameObject.SetActive(true);
+        gameOverText.enableVertexGradient = true;
+        gameOverText.colorGradient = new VertexGradient(
+            new Color(0.9f, 0.9f, 0.9f, 1f),      
+            new Color(0.7f, 0.7f, 0.7f, 1f),      
+            new Color(0.5f, 0.5f, 0.5f, 1f),      
+            new Color(0.3f, 0.3f, 0.3f, 1f)       
+        );
+        
+        gameOverText.gameObject.AddComponent<Shadow>().effectColor = new Color(0.05f, 0.05f, 0.05f, 0.6f);
+        gameOverText.gameObject.GetComponent<Shadow>().effectDistance = new Vector2(2f, -2f);
+        
+        gameOverText.gameObject.AddComponent<Outline>().effectColor = new Color(0.15f, 0.15f, 0.15f, 0.4f);
+        gameOverText.gameObject.GetComponent<Outline>().effectDistance = new Vector2(1f, -1f);
 
-        if (retryButton != null)
+        RectTransform textRect = textGO.GetComponent<RectTransform>();
+        textRect.anchorMin = new Vector2(0.5f, 0.65f);
+        textRect.anchorMax = new Vector2(0.5f, 0.65f);
+        textRect.sizeDelta = new Vector2(800, 200);
+        textRect.anchoredPosition = Vector2.zero;
+
+        
+        Material textMaterial = new Material(Shader.Find("TextMeshPro/Distance Field"));
+        
+        
+        Texture2D grungeTexture = Resources.Load<Texture2D>("Dark UI/Textures/Grunge/Background 3");
+        if (grungeTexture != null)
         {
-            selectedButtonIndex = 0;
-            retryButton.Select();
-            retryButton.OnSelect(null);
-            EventSystem.current?.SetSelectedGameObject(retryButton.gameObject);
+            textMaterial.SetTexture("_MainTex", grungeTexture);
+            textMaterial.SetFloat("_OutlineWidth", 0.1f);
+            textMaterial.SetFloat("_OutlineSoftness", 0.2f);
+            gameOverText.fontMaterial = textMaterial;
         }
 
-        if (gameOverText != null || buttonCanvasGroup != null)
+        
+        gameOverText.color = new Color(0.85f, 0.85f, 0.85f, 1f); 
+
+        
+        GameObject buttonContainer = new GameObject("ButtonContainer", typeof(RectTransform));
+        buttonContainer.transform.SetParent(canvasGO.transform, false);
+        buttonCanvasGroup = buttonContainer.AddComponent<CanvasGroup>();
+        buttonCanvasGroup.alpha = 0f;
+
+        RectTransform containerRect = buttonContainer.GetComponent<RectTransform>();
+        containerRect.anchorMin = new Vector2(0.5f, 0.35f);
+        containerRect.anchorMax = new Vector2(0.5f, 0.35f);
+        containerRect.sizeDelta = new Vector2(600, 300);
+        containerRect.anchoredPosition = Vector2.zero;
+
+        
+        if (retryButton == null)
         {
-            StartCoroutine(FadeInGameOverElements());
+            GameObject continueButtonGO = new GameObject("ContinueButton", typeof(RectTransform));
+            continueButtonGO.transform.SetParent(buttonContainer.transform, false);
+            internalRetryButton = continueButtonGO.AddComponent<Button>();
+            
+            Image continueImage = continueButtonGO.AddComponent<Image>();
+
+            Texture2D buttonGrungeTexture = Resources.Load<Texture2D>("Dark UI/Textures/Grunge/Background 3");
+            if (buttonGrungeTexture != null)
+            {
+                Sprite grungeSprite = Sprite.Create(
+                    buttonGrungeTexture,
+                    new Rect(0, 0, buttonGrungeTexture.width, buttonGrungeTexture.height),
+                    new Vector2(0.5f, 0.5f));
+                continueImage.sprite = grungeSprite;
+                continueImage.type = Image.Type.Sliced;
+                continueImage.color = Color.white;
+            }
+            else
+            {
+                continueImage.color = new Color(0.2f, 0.2f, 0.2f, 1f);
+            }
+
+            internalRetryButton.targetGraphic = continueImage;
+
+            RectTransform continueRect = continueButtonGO.GetComponent<RectTransform>();
+            continueRect.anchorMin = new Vector2(0.1f, 0.55f);
+            continueRect.anchorMax = new Vector2(0.9f, 0.85f);
+            continueRect.sizeDelta = Vector2.zero;
+            continueRect.anchoredPosition = Vector2.zero;
+
+            GameObject continueTextGO = new GameObject("ContinueText", typeof(RectTransform));
+            continueTextGO.transform.SetParent(continueButtonGO.transform, false);
+            TextMeshProUGUI continueText = continueTextGO.AddComponent<TextMeshProUGUI>();
+            continueText.text = "CONTINUE";
+            continueText.fontSize = 32;
+            continueText.color = Color.white;
+            continueText.alignment = TextAlignmentOptions.Center;
+
+            RectTransform continueTextRect = continueTextGO.GetComponent<RectTransform>();
+            continueTextRect.anchorMin = Vector2.zero;
+            continueTextRect.anchorMax = Vector2.one;
+            continueTextRect.sizeDelta = Vector2.zero;
+            continueTextRect.anchoredPosition = Vector2.zero;
         }
 
-        EnterGameOverUINavigation();
+        
+        if (quitButton == null)
+        {
+            GameObject quitButtonGO = new GameObject("QuitButton", typeof(RectTransform));
+            quitButtonGO.transform.SetParent(buttonContainer.transform, false);
+            internalQuitButton = quitButtonGO.AddComponent<Button>();
+            
+            Image quitImage = quitButtonGO.AddComponent<Image>();
+
+            Texture2D buttonGrungeTexture = Resources.Load<Texture2D>("Dark UI/Textures/Grunge/Background 3");
+            if (buttonGrungeTexture != null)
+            {
+                Sprite grungeSpriteQuit = Sprite.Create(
+                    buttonGrungeTexture,
+                    new Rect(0, 0, buttonGrungeTexture.width, buttonGrungeTexture.height),
+                    new Vector2(0.5f, 0.5f));
+                quitImage.sprite = grungeSpriteQuit;
+                quitImage.type = Image.Type.Sliced;
+                quitImage.color = Color.white;
+            }
+            else
+            {
+                quitImage.color = new Color(0.2f, 0.2f, 0.2f, 1f);
+            }
+
+            internalQuitButton.targetGraphic = quitImage;
+
+            RectTransform quitRect = quitButtonGO.GetComponent<RectTransform>();
+            quitRect.anchorMin = new Vector2(0.1f, 0.15f);
+            quitRect.anchorMax = new Vector2(0.9f, 0.45f);
+            quitRect.sizeDelta = Vector2.zero;
+            quitRect.anchoredPosition = Vector2.zero;
+
+            GameObject quitTextGO = new GameObject("QuitText", typeof(RectTransform));
+            quitTextGO.transform.SetParent(quitButtonGO.transform, false);
+            TextMeshProUGUI quitText = quitTextGO.AddComponent<TextMeshProUGUI>();
+            quitText.text = "QUIT TO MENU";
+            if (liberationFont != null) quitText.font = liberationFont;
+            quitText.fontSize = 32;
+            quitText.color = Color.white;
+            quitText.alignment = TextAlignmentOptions.Center;
+
+            RectTransform quitTextRect = quitTextGO.GetComponent<RectTransform>();
+            quitTextRect.anchorMin = Vector2.zero;
+            quitTextRect.anchorMax = Vector2.one;
+            quitTextRect.sizeDelta = Vector2.zero;
+            quitTextRect.anchoredPosition = Vector2.zero;
+        }
     }
 
-    private IEnumerator FadeInGameOverElements()
+    private void ShowGameOverUI()
     {
-        // Inicializar alphas a 0
+        if (gameOverCanvas != null)
+        {
+            gameOverCanvas.gameObject.SetActive(true);
+            
+            // Focus on the retry button for joystick navigation
+            if (internalRetryButton != null)
+            {
+                internalRetryButton.Select();
+                internalRetryButton.OnSelect(null);
+            }
+            
+            if (gameOverText != null)
+            {
+                StartCoroutine(FadeInGameOverText());
+            }
+        }
+    }
+    
+    private IEnumerator FadeInGameOverText()
+    {
         if (gameOverText != null)
         {
+            // Ensure buttons are active and set to 0 alpha
+            if (buttonCanvasGroup != null) buttonCanvasGroup.alpha = 0f;
+            
             Color textColor = gameOverText.color;
             textColor.a = 0f;
             gameOverText.color = textColor;
-        }
-
-        if (buttonCanvasGroup != null)
-        {
-            buttonCanvasGroup.alpha = 0f;
-        }
-
-        float duration = 1.5f;
-        float elapsed = 0f;
-
-        // Fade in gradual usando unscaled time
-        while (elapsed < duration)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            float alpha = Mathf.SmoothStep(0f, 1f, elapsed / duration);
-
-            if (gameOverText != null)
+            
+            float duration = 1.5f; // Slightly faster
+            float elapsed = 0f;
+            
+            while (elapsed < duration)
             {
-                Color textColor = gameOverText.color;
+                elapsed += Time.deltaTime;
+                float alpha = Mathf.SmoothStep(0f, 1f, elapsed / duration);
+                
                 textColor.a = alpha;
                 gameOverText.color = textColor;
+
+                if (buttonCanvasGroup != null)
+                {
+                    buttonCanvasGroup.alpha = alpha;
+                }
+                
+                yield return null;
             }
-
-            if (buttonCanvasGroup != null)
-            {
-                buttonCanvasGroup.alpha = alpha;
-            }
-
-            yield return null;
-        }
-
-        // Asegurar alpha final
-        if (gameOverText != null)
-        {
-            Color textColor = gameOverText.color;
+            
             textColor.a = 1f;
             gameOverText.color = textColor;
+            if (buttonCanvasGroup != null) buttonCanvasGroup.alpha = 1f;
+            
+            StartCoroutine(ShakeGameOverText());
         }
-
-        if (buttonCanvasGroup != null)
+    }
+    
+    private IEnumerator ShakeGameOverText()
+    {
+        if (gameOverText != null)
         {
-            buttonCanvasGroup.alpha = 1f;
+            RectTransform textRect = gameOverText.GetComponent<RectTransform>();
+            Vector3 originalPosition = textRect.anchoredPosition;
+            
+            float elapsed = 0f;
+            float smoothShakeSpeed = 8f; 
+            
+            while (elapsed < shakeDuration)
+            {
+                
+                float shakeProgress = elapsed / shakeDuration;
+                float intensityMultiplier = (1f - shakeProgress) * 0.5f; 
+                
+                
+                float shakeX = Mathf.Sin(elapsed * smoothShakeSpeed) * shakeIntensity * intensityMultiplier;
+                float shakeY = Mathf.Cos(elapsed * smoothShakeSpeed * 0.7f) * shakeIntensity * 0.5f * intensityMultiplier;
+                
+                textRect.anchoredPosition = originalPosition + new Vector3(shakeX, shakeY, 0f);
+                
+                
+                float flicker = Mathf.Lerp(0.95f, 1f, Mathf.Sin(elapsed * 4f) * 0.5f + 0.5f);
+                Color currentColor = gameOverText.color;
+                currentColor.a = flicker;
+                gameOverText.color = currentColor;
+                
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+            
+            
+            float returnDuration = 0.3f;
+            float returnElapsed = 0f;
+            Vector3 currentPos = textRect.anchoredPosition;
+            
+            while (returnElapsed < returnDuration)
+            {
+                returnElapsed += Time.deltaTime;
+                float t = returnElapsed / returnDuration;
+                t = Mathf.SmoothStep(0f, 1f, t); 
+                
+                textRect.anchoredPosition = Vector3.Lerp(currentPos, originalPosition, t);
+                yield return null;
+            }
+            
+            
+            textRect.anchoredPosition = originalPosition;
+            gameOverText.color = Color.white;
         }
     }
 
@@ -611,314 +1014,84 @@ public class GameOverManager : MonoBehaviour
 
     private void OnContinueButtonClicked()
     {
-        Debug.Log("[GameOverManager] Continue button clicked. Restarting from checkpoint...");
 
+        
         HideGameOverUI();
-        ExitGameOverUINavigation();
-        StartCoroutine(RestartFromCheckpoint());
-    }
-
-    private IEnumerator RestartFromCheckpoint()
-    {
-        if (fadeImage != null)
-        {
-            yield return StartCoroutine(FadeToBlack());
-        }
-
-        yield return new WaitForSecondsRealtime(0.2f);
-
-        ResetGameOverState();
-        Time.timeScale = 1f;
+        
+        
         ResumeGame();
-
-        RespawnAllPlayers();
-
-        HideAllRespawnPanels();
-
-        if (fadeImage != null)
-        {
-            yield return StartCoroutine(FadeIn());
-        }
-
-        Debug.Log("[GameOverManager] Players respawned using RestoreState.");
+        
+        
+        ResetGameOverState();
+        
+        
+        StartCoroutine(RestartLevel());
     }
-
-    private void RespawnAllPlayers()
+    
+    
+    
+    
+    private IEnumerator RestartLevel()
     {
-        // Encontrar todos los jugadores y respawnearlos desde sus checkpoints
-        foreach (var player in players)
-        {
-            if (player != null)
-            {
-                // Forzar que el jugador no est� muerto
-                if (player.IsDead)
-                {
-                    // Llamar al RestoreState de cada jugador
-                    // Esto usa sus lastCheckpointPosition guardadas
-                    player.RestoreState();
-                }
-                else
-                {
-                    var ui = player.GetComponent<PlayerUIController>();
-                    if (ui != null) ui.HideRespawnPanel();
-                }
-            }
-        }
+        
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        
 
-        Debug.Log($"[GameOverManager] {players.Count} players respawned from their checkpoints.");
-    }
+        
+        
+        yield return StartCoroutine(FadeToBlack());
+        
+        
+        yield return new WaitForSeconds(0.5f);
+        
+        
+        SceneManager.LoadScene(currentSceneName);
+        
 
-    private void ResetEnemies()
-    {
-        RestoreSceneSnapshot();
-        Debug.Log("[GameOverManager] Scene restored from snapshot.");
-    }
-
-    private IEnumerator FadeIn()
-    {
-        if (fadeImage != null)
-        {
-            fadeImage.gameObject.SetActive(true);
-            Color color = fadeImage.color;
-            color.a = 1f;
-            fadeImage.color = color;
-
-            float elapsed = 0f;
-            while (elapsed < fadeDuration)
-            {
-                elapsed += Time.deltaTime; // Ahora usamos deltaTime normal porque ya resumimos el juego
-                color.a = 1f - Mathf.Clamp01(elapsed / fadeDuration);
-                fadeImage.color = color;
-                yield return null;
-            }
-
-            fadeImage.gameObject.SetActive(false);
-        }
     }
 
     private void OnQuitButtonClicked()
     {
-        Debug.Log("[GameOverManager] Quit button clicked. Returning to Main Menu...");
-
+        // Stop any pending logic
         StopAllCoroutines();
-        ExitGameOverUINavigation();
+        
+        // Ensure time is back to normal
         Time.timeScale = 1f;
+        
+        // Load the main menu scene
         SceneManager.LoadScene("Main Menu");
     }
 
-    private void ResetGameOverState()
+    private IEnumerator FadeInAfterUI()
     {
-        deadPlayersCount = 0;
-        gameOverTriggered = false;
-
-        Debug.Log("[GameOverManager] Game Over state reset.");
-    }
-
-    private void EnterGameOverUINavigation()
-    {
-        uiPlayerInputs.Clear();
-        foreach (var p in players)
-        {
-            if (p == null) continue;
-            var pi = p.GetComponent<UnityEngine.InputSystem.PlayerInput>();
-            if (pi == null) continue;
-            uiPlayerInputs.Add(pi);
-        }
-        if (uiPlayerInputs.Count == 0)
-        {
-            var all = FindObjectsOfType<UnityEngine.InputSystem.PlayerInput>();
-            uiPlayerInputs.AddRange(all);
-        }
-        foreach (var pi in uiPlayerInputs)
-        {
-            try { pi.SwitchCurrentActionMap("UI"); } catch {}
-            var actions = pi.actions;
-            if (actions == null) continue;
-            var nav = actions.FindAction("Navigate", true);
-            var sub = actions.FindAction("Submit", false);
-            var can = actions.FindAction("Cancel", false);
-            if (nav != null) nav.performed += OnUINavigate;
-            if (sub != null) sub.performed += OnUISubmit;
-            if (can != null) can.performed += OnUICancel;
-        }
-    }
-
-    private void ExitGameOverUINavigation()
-    {
-        foreach (var pi in uiPlayerInputs)
-        {
-            var actions = pi.actions;
-            if (actions != null)
-            {
-                var nav = actions.FindAction("Navigate", false);
-                var sub = actions.FindAction("Submit", false);
-                var can = actions.FindAction("Cancel", false);
-                if (nav != null) nav.performed -= OnUINavigate;
-                if (sub != null) sub.performed -= OnUISubmit;
-                if (can != null) can.performed -= OnUICancel;
-            }
-            try { pi.SwitchCurrentActionMap("Player"); } catch {}
-        }
-        uiPlayerInputs.Clear();
-    }
-
-    private void OnUINavigate(UnityEngine.InputSystem.InputAction.CallbackContext ctx)
-    {
-        if (Time.unscaledTime - lastNavigateTime < navigateRepeatDelay) return;
-        Vector2 v = ctx.ReadValue<Vector2>();
-        if (Mathf.Abs(v.y) < 0.5f) return;
-        lastNavigateTime = Time.unscaledTime;
-        selectedButtonIndex = 1 - selectedButtonIndex;
-        var target = selectedButtonIndex == 0 ? retryButton : quitButton;
-        if (target == null) return;
-        EventSystem.current?.SetSelectedGameObject(target.gameObject);
-        target.Select();
-    }
-
-    private void OnUISubmit(UnityEngine.InputSystem.InputAction.CallbackContext ctx)
-    {
-        var selected = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
-        if (selected != null)
-        {
-            var btn = selected.GetComponent<Button>();
-            if (btn != null) btn.onClick.Invoke();
-        }
-        else
-        {
-            var fallback = selectedButtonIndex == 0 ? retryButton : quitButton;
-            if (fallback != null) fallback.onClick.Invoke();
-        }
-    }
-
-    private void OnUICancel(UnityEngine.InputSystem.InputAction.CallbackContext ctx)
-    {
-        if (quitButton != null) quitButton.onClick.Invoke();
-    }
-
-    private void OnCheckpointReached(int playerID, Vector3 position)
-    {
-        // Intentionally left blank to avoid using CheckpointSystem in retry flow
-    }
-
-    private void CreateSceneSnapshot()
-    {
-        enemySnapshot.Clear();
-        securityDoorSnapshot.Clear();
-        keyCardDoorSnapshot.Clear();
-
-        var enemies = FindObjectsOfType<EnemyMonsterAI>();
-        foreach (var e in enemies)
-        {
-            enemySnapshot.Add((e.transform, e.transform.position, e.transform.rotation));
-        }
-        var enemyTagged = GameObject.FindGameObjectsWithTag("Enemy");
-        foreach (var go in enemyTagged)
-        {
-            var t = go.transform;
-            if (!enemies.Any(x => x.transform == t))
-            {
-                enemySnapshot.Add((t, t.position, t.rotation));
-            }
-        }
-
-        var secDoors = FindObjectsOfType<SecurityDoor>();
-        foreach (var d in secDoors)
-        {
-            bool open = false;
-            try { open = d.IsOpen; } catch { }
-            securityDoorSnapshot.Add((d, open));
-        }
-
-        var keyDoors = FindObjectsOfType<DoorWithKeyCard>();
-        foreach (var d in keyDoors)
-        {
-            bool locked = d.IsLocked;
-            bool open = Vector3.Distance(d.transform.position, GetFieldVector3(d, "openPosition")) < 0.05f;
-            keyCardDoorSnapshot.Add((d, locked, open));
-        }
-
-        hasSceneSnapshot = true;
-        Debug.Log("[GameOverManager] Scene snapshot created.");
-    }
-
-    private void RestoreSceneSnapshot()
-    {
-        if (!hasSceneSnapshot) return;
-
-        foreach (var rec in enemySnapshot)
-        {
-            if (rec.t == null) continue;
-            var nav = rec.t.GetComponent<UnityEngine.AI.NavMeshAgent>();
-            if (nav != null)
-            {
-                nav.isStopped = true;
-                nav.ResetPath();
-            }
-            rec.t.position = rec.pos;
-            rec.t.rotation = rec.rot;
-        }
-
-        foreach (var rec in securityDoorSnapshot)
-        {
-            if (rec.door == null) continue;
-            rec.door.ForceSetState(rec.open);
-        }
-
-        foreach (var rec in keyCardDoorSnapshot)
-        {
-            if (rec.door == null) continue;
-            rec.door.ForceSetState(rec.locked, rec.open, false);
-        }
-
-        foreach (var player in players)
-        {
-            if (player == null) continue;
-            var anim = player.GetComponentInChildren<Animator>();
-            if (anim != null)
-            {
-                anim.SetBool("IsDeadAnimator", false);
-            }
-            var ui = player.GetComponent<PlayerUIController>();
-            if (ui != null) ui.HideRespawnPanel();
-        }
-    }
-
-    private Vector3 GetFieldVector3(object obj, string fieldName)
-    {
-        var fi = obj.GetType().GetField(fieldName, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
-        if (fi != null && fi.FieldType == typeof(Vector3))
-        {
-            return (Vector3)fi.GetValue(obj);
-        }
-        return Vector3.zero;
-    }
-
-    private void HideAllRespawnPanels()
-    {
-        foreach (var player in players)
-        {
-            if (player == null) continue;
-            var ui = player.GetComponent<PlayerUIController>();
-            if (ui != null) ui.HideRespawnPanel();
-        }
+        yield return StartCoroutine(FadeIn());
+        
+        ResetGameOverState();
     }
 
     private IEnumerator SearchForNPCLater()
     {
         yield return new WaitForSeconds(2f);
-
+        
         while (npcToProtect == null)
         {
             npcToProtect = FindNPCByTag();
-
+            
             if (npcToProtect != null)
             {
-                npcToProtect.OnNPCDied += HandleNPCDeath;
-                Debug.Log("[GameOverManager] NPC to protect found and subscribed.");
+
+                
+                if (npcToProtect != null)
+                {
+                    npcToProtect.OnNPCDied += HandleNPCDeath;
+                }
                 break;
             }
-
+            
             yield return new WaitForSeconds(3f);
         }
     }
+
+    
 }
+

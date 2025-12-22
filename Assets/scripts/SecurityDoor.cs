@@ -29,7 +29,6 @@ public class SecurityDoor : MonoBehaviour
     private bool isMoving = false;
     private bool player1InRange = false;
     private bool player2InRange = false;
-    public bool IsOpen => isOpen;
     
     private void Start()
     {
@@ -183,14 +182,5 @@ public class SecurityDoor : MonoBehaviour
             pcRoomLight.color = newColor;
 
         }
-    }
-
-    public void ForceSetState(bool open)
-    {
-        isOpen = open;
-        isMoving = false;
-        if (doorTransform == null) doorTransform = transform;
-        doorTransform.position = open ? openPosition : closedPosition;
-        ChangeLightColor(open ? openLightColor : closedLightColor);
     }
 }
