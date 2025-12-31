@@ -1695,9 +1695,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 516041b86f6ed0c43a1350d28c77f932, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1007893109664216704}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 516041b86f6ed0c43a1350d28c77f932, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 8897255144251590275}
   m_SourcePrefab: {fileID: 100100000, guid: 516041b86f6ed0c43a1350d28c77f932, type: 3}
 --- !u!4 &279787760276420737 stripped
 Transform:
@@ -1901,7 +1898,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74728366ba5658149a0a2ffba68fddad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dialogueData: {fileID: 11400000, guid: 2d4999961f1c496468e216185a686b06, type: 2}
+  npcDialogueData: {fileID: 0}
 --- !u!114 &1007893109664216704
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1921,24 +1918,9 @@ MonoBehaviour:
   runSpeed: 6
   crouchSpeed: 2
   stoppingDistance: 2
+  footstepSounds: []
   flagFollowP1: NPC_Follows_P1
   flagFollowP2: NPC_Follows_P2
---- !u!114 &8897255144251590275
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 624260718232298043}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 58ca2b43085c40b4eaefedf564a9fc65, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  npcID: 1
-  npcOutlineColor: {r: 0, g: 1, b: 0, a: 1}
-  npcHealth: {fileID: 0}
-  npcNoiseEmitter: {fileID: 0}
 --- !u!95 &6125508646156296955 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 516041b86f6ed0c43a1350d28c77f932, type: 3}
