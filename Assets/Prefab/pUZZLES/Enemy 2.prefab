@@ -2296,6 +2296,9 @@ PrefabInstance:
       addedObject: {fileID: 7432569301493721955}
     - targetCorrespondingSourceObject: {fileID: 100128, guid: 5af37b30310b3054a8a565b87ed504b7, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 65833422646669713}
+    - targetCorrespondingSourceObject: {fileID: 100128, guid: 5af37b30310b3054a8a565b87ed504b7, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 2930374377236335653}
     - targetCorrespondingSourceObject: {fileID: 100128, guid: 5af37b30310b3054a8a565b87ed504b7, type: 3}
       insertIndex: -1
@@ -2348,13 +2351,6 @@ MonoBehaviour:
   initialState: 2
   crawlSpeed: 1.2
   walkSpeed: 2.5
-  investigationSpeed: 2
-  attackRange: 3.26
-  attackCooldown: 1
-  attackDamage: 25
-  detectionRange: 1.78
-  postAttackFocusTime: 2
-  attackApproachStoppingDistance: 2.29
   patrolPoints:
   - {fileID: 4353887507022756015}
   - {fileID: 39700651828597825}
@@ -2382,23 +2378,10 @@ MonoBehaviour:
   npcTargets:
   - {fileID: 0}
   objectNoiseDetection: {fileID: 4847572395625809194}
-  audioSensitivity: 0.5
-  maxHearingDistance: 10.7
-  minDetectionRadius: 4.73
-  detectionThreshold: 0
-  proximityDetectionRadius: 3.5
-  closeRangeBoost: 2
-  soundBlockerLayer:
-    serializedVersion: 2
-    m_Bits: 0
-  soundAttenuationPerWall: 0.7
-  memoryDuration: 60
-  destructibleWallLayer:
-    serializedVersion: 2
-    m_Bits: 8192
-  wallDetectionDistance: 3
-  wallDetectionRadius: 0.5
-  frontWallCheckDistance: 2.5
+  detectionRange: 10
+  ultraCloseRange: 2
+  minNoiseToDetect: 0.1
+  objectNoiseThreshold: 2
 --- !u!114 &7432569301493721955
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2413,6 +2396,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rotationSpeed: 8
   movementThreshold: 0.05
+--- !u!114 &65833422646669713
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7667871207589514581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d99658e113f4dd04189d93a039cfb36b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  attackRange: 2.2
+  attackCooldown: 0.5
+  playerDamage: 25
+  npcDamage: 15
+  destructibleWallLayer:
+    serializedVersion: 2
+    m_Bits: 8192
+  wallCheckDistance: 5
 --- !u!114 &2930374377236335653
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2440,16 +2443,6 @@ MonoBehaviour:
   roarMaterial: {fileID: 2100000, guid: a0187bd7047a95e4d80490fe62b50304, type: 2}
   maxRoarDistortion: 0.03
   animationDampTime: 5
-  headAimRig: {fileID: 427490420219399600}
-  lookTarget: {fileID: 2359419627912406633}
-  headBone: {fileID: 2841877118672894435}
-  scanWidth: 1.5
-  scanSpeed: 2
-  crawlScanWidth: 0.8
-  crawlScanSpeed: 1
-  verticalScanAmplitude: 0.2
-  lookTargetDistance: 0.5
-  investigateRigBlendSpeed: 2
 --- !u!195 &1707483471403752136
 NavMeshAgent:
   m_ObjectHideFlags: 0

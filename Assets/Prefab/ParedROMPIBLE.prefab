@@ -98,9 +98,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 228307397173094237, guid: 6f8e07c9883741f46885d6cf26f3e4a6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5511500002076994956}
-    - targetCorrespondingSourceObject: {fileID: 228307397173094237, guid: 6f8e07c9883741f46885d6cf26f3e4a6, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 8597303569956136539}
   m_SourcePrefab: {fileID: 100100000, guid: 6f8e07c9883741f46885d6cf26f3e4a6, type: 3}
 --- !u!1 &6477311470060402228 stripped
 GameObject:
@@ -121,7 +118,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fracturedWallPrefab: {fileID: 4968326923703554842, guid: 5c7df5d8f323bb946b80bd33f9792946, type: 3}
   dustExplosionVFXPrefab: {fileID: 0}
-  baseExplosionForce: 5
+  baseExplosionForce: 15
   maxAngle: 45
   forceMode: 1
   physicsSimulationTime: 3
@@ -130,7 +127,7 @@ MonoBehaviour:
   fragmentLayerName: Debris
   disableCollisionWithEnemy: 1
   removeFromNavMesh: 1
-  updateNavMeshOnDestroy: 1
+  updateNavMeshOnDestroy: 0
   navMeshUpdateRadius: 10
 --- !u!65 &5511500002076994956
 BoxCollider:
@@ -153,19 +150,3 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 200, y: 400, z: 30.000027}
   m_Center: {x: 0.000022888184, y: 200, z: 0.000015258789}
---- !u!208 &8597303569956136539
-NavMeshObstacle:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6477311470060402228}
-  m_Enabled: 0
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 100.00001, y: 200.00002, z: 15.000001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: 0, y: 200.00002, z: 0}
-  m_TimeToStationary: 0.5
