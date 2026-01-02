@@ -28,7 +28,7 @@ public class Wall_Destruction : MonoBehaviour
     public bool removeFromNavMesh = true;
 
     [Header("NavMesh Update")]
-    public bool updateNavMeshOnDestroy = true;
+    public bool updateNavMeshOnDestroy = false;
     public float navMeshUpdateRadius = 10f;
 
     private Collider[] originalColliders;
@@ -109,43 +109,18 @@ public class Wall_Destruction : MonoBehaviour
 
     private IEnumerator UpdateNavMeshAfterDestruction(Vector3 position)
     {
-        yield return null;
-        yield return null;
-
-        NavMeshSurface[] surfaces = FindObjectsOfType<NavMeshSurface>();
-
-        if (surfaces.Length > 0)
-        {
-            Debug.Log("[Wall_Destruction] Actualizando NavMeshSurfaces");
-
-            foreach (NavMeshSurface surface in surfaces)
-            {
-                surface.useGeometry = NavMeshCollectGeometry.RenderMeshes;
-                surface.defaultArea = 0;
-                surface.BuildNavMesh();
-            }
-
-            Debug.Log("[Wall_Destruction] NavMesh actualizado correctamente");
-        }
-        else
-        {
-            Debug.LogWarning("[Wall_Destruction] No se encontro NavMeshSurface en la escena");
-        }
-
-        yield return null;
+        yield return new WaitForSeconds(0.5f);
 
         Collider[] nearbyColliders = Physics.OverlapSphere(position, navMeshUpdateRadius);
         foreach (Collider col in nearbyColliders)
         {
-            NavMeshAgent agent = col.GetComponent<NavMeshAgent>();
+            UnityEngine.AI.NavMeshAgent agent = col.GetComponent<UnityEngine.AI.NavMeshAgent>();
             if (agent != null && agent.isOnNavMesh && agent.hasPath)
             {
                 Vector3 currentDestination = agent.destination;
                 agent.ResetPath();
                 yield return null;
                 agent.SetDestination(currentDestination);
-
-                Debug.Log("[Wall_Destruction] Ruta recalculada para: " + agent.gameObject.name);
             }
         }
     }
@@ -227,10 +202,7 @@ public class Wall_Destruction : MonoBehaviour
             rb.AddTorque(Random.insideUnitSphere * forceMagnitude * 0.01f, forceMode);
         }
 
-        Debug.Log("[Wall_Destruction] Simulando fisica");
         yield return new WaitForSeconds(physicsSimulationTime);
-
-        Debug.Log("[Wall_Destruction] Congelando fragmentos y deshabilitando colliders");
 
         int disabledCount = 0;
         foreach (Rigidbody rb in fragments)
@@ -248,11 +220,6 @@ public class Wall_Destruction : MonoBehaviour
             rb.useGravity = false;
         }
 
-        Debug.Log("[Wall_Destruction] Colliders deshabilitados: " + disabledCount);
-
-        yield return new WaitForSeconds(0.1f);
-        ForceNavMeshUpdate();
-
         if (cleanupTime > 0)
         {
             yield return new WaitForSeconds(cleanupTime);
@@ -262,22 +229,10 @@ public class Wall_Destruction : MonoBehaviour
 
     private void ForceNavMeshUpdate()
     {
-        NavMeshSurface[] surfaces = FindObjectsOfType<NavMeshSurface>();
-
-        if (surfaces.Length > 0)
-        {
-            Debug.Log("[Wall_Destruction] Forzando rebuild de NavMesh");
-
-            foreach (var surface in surfaces)
-            {
-                surface.BuildNavMesh();
-            }
-        }
-
         EnemyMotor[] enemies = FindObjectsOfType<EnemyMotor>();
         foreach (var enemy in enemies)
         {
-            NavMeshAgent agent = enemy.GetComponent<NavMeshAgent>();
+            UnityEngine.AI.NavMeshAgent agent = enemy.GetComponent<UnityEngine.AI.NavMeshAgent>();
             if (agent != null && agent.isOnNavMesh && agent.hasPath)
             {
                 Vector3 destination = agent.destination;

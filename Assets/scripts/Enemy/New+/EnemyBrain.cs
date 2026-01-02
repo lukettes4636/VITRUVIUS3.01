@@ -1,14 +1,8 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-/// <summary>
-/// Cerebro del enemigo - Máquina de estados simplificada.
-/// Estados: PATROL → ALERT → CHASE → ATTACK → INVESTIGATE → RETURN
-/// </summary>
-
 public class EnemyBrain : MonoBehaviour
 {
-    // COMPONENTES
     private EnemySenses senses;
     private EnemyMotor motor;
     private EnemyVisuals visuals;
@@ -28,36 +22,38 @@ public class EnemyBrain : MonoBehaviour
     public float patrolWaitTime = 1f;
     private int patrolIndex = 0;
 
-    [Header("Investigación")]
-    [Tooltip("Tiempo que espera en el último punto conocido")]
+    [Header("Investigacion")]
     public float investigationDuration = 2f;
 
     [Header("Debug")]
     [SerializeField] private State currentState;
 
-    // ESTADOS
     private enum State
     {
-        Sleeping,   // Dormido (pasivo)
-        Eating,     // Comiendo (pasivo)
-        Patrol,     // Patrullando en crawl
-        Alert,      // GetUp → Roar (transición)
-        Chase,      // Persiguiendo de pie
-        Attack,     // Atacando
-        Investigate,// Escuchando en punto
-        Return      // ToCrawl → vuelve a patrol
+        Sleeping,
+        Eating,
+        Patrol,
+        Alert,
+        Chase,
+        Attack,
+        Investigate,
+        Return
     }
+
+    private Vector3 lastPosition;
+    private float stuckTimer = 0f;
+    private const float stuckCheckInterval = 0.5f;
+    private const float stuckThreshold = 0.1f;
 
     void Start()
     {
-        // Get componentes
         senses = GetComponent<EnemySenses>();
         motor = GetComponent<EnemyMotor>();
         visuals = GetComponent<EnemyVisuals>();
         combat = GetComponent<EnemyCombat>();
         cameraController = FindObjectOfType<EnemyCameraController>();
 
-        // Setup inicial
+        lastPosition = transform.position;
         SetupInitialState();
     }
 
@@ -87,11 +83,9 @@ public class EnemyBrain : MonoBehaviour
 
     void Update()
     {
-        // Detectar targets cada frame
         bool canDetectObjects = (currentState != State.Attack);
         senses.Tick(canDetectObjects);
 
-        // Lógica según estado
         switch (currentState)
         {
             case State.Sleeping:
@@ -105,27 +99,19 @@ public class EnemyBrain : MonoBehaviour
 
             case State.Chase:
                 HandleChase();
+                CheckIfStuck();
                 break;
 
             case State.Investigate:
-                // Manejado por coroutine
-                break;
-
             case State.Alert:
             case State.Attack:
             case State.Return:
-                // Manejados por coroutines
                 break;
         }
     }
 
-    // ========================================
-    // ESTADOS PASIVOS (SLEEPING / EATING)
-    // ========================================
-
     void HandlePassiveStates()
     {
-        // Si detecta ruido, despertar
         if (senses.HasTarget)
         {
             StartCoroutine(WakeUpSequence());
@@ -137,11 +123,9 @@ public class EnemyBrain : MonoBehaviour
         currentState = State.Alert;
         motor.Stop();
 
-        // GetUp animation
         visuals.TriggerGetUp();
-        yield return new WaitForSeconds(2.5f); // Duración GetUp
+        yield return new WaitForSeconds(2.5f);
 
-        // Confirmar que salió de crawl
         float confirmTime = 0f;
         while (confirmTime < 1f)
         {
@@ -149,32 +133,24 @@ public class EnemyBrain : MonoBehaviour
             yield return null;
         }
 
-        // Roar + Shader + Zoom
         if (cameraController)
             cameraController.StartTrackingEnemy(transform);
 
         visuals.TriggerRoar();
         visuals.PlayRoarSound();
-        yield return new WaitForSeconds(3f); // Duración Roar
+        yield return new WaitForSeconds(3f);
 
-        // Transición a Chase
         currentState = State.Chase;
     }
 
-    // ========================================
-    // PATRULLA
-    // ========================================
-
     void HandlePatrol()
     {
-        // Si detecta ruido, despertar
         if (senses.HasTarget)
         {
             StartCoroutine(WakeUpSequence());
             return;
         }
 
-        // Lógica de patrulla
         if (patrolPoints.Length == 0) return;
 
         if (motor.GetRemainingDistance() <= 0.2f)
@@ -183,7 +159,7 @@ public class EnemyBrain : MonoBehaviour
         }
         else
         {
-            visuals.UpdateAnimationState(true); // Crawl walk
+            visuals.UpdateAnimationState(true);
         }
     }
 
@@ -202,16 +178,10 @@ public class EnemyBrain : MonoBehaviour
         patrolIndex = (patrolIndex + 1) % patrolPoints.Length;
     }
 
-    // ========================================
-    // PERSECUCIÓN
-    // ========================================
-
     void HandleChase()
     {
-        // VERIFICAR TARGET
         if (!senses.HasTarget)
         {
-            // Perdió el target, investigar último punto
             StartCoroutine(InvestigateLastKnown());
             return;
         }
@@ -223,31 +193,34 @@ public class EnemyBrain : MonoBehaviour
             return;
         }
 
-        // VERIFICAR SI MURIÓ
         if (IsTargetDead(target))
         {
             StartCoroutine(InvestigateLastKnown());
             return;
         }
 
-        //  VERIFICAR PAREDES
-        if (senses.CheckWallInPath(out GameObject wall, combat.destructibleWallLayer, combat.wallCheckDistance))
+        if (motor.GetRemainingDistance() == Mathf.Infinity)
         {
-            StartCoroutine(combat.AttackWall(wall, senses));
-            currentState = State.Attack;
+            Debug.LogWarning("[EnemyBrain] NavMesh path invalido, investigando ultima posicion");
+            StartCoroutine(InvestigateLastKnown());
             return;
         }
 
-        //  VERIFICAR RANGO DE ATAQUE
+        if (senses.CheckWallInPath(out GameObject wall, combat.destructibleWallLayer, combat.wallCheckDistance))
+        {
+            currentState = State.Attack;
+            StartCoroutine(AttackWallSequence(wall));
+            return;
+        }
+
         if (combat.CanAttackTarget(target))
         {
             StartCoroutine(AttackSequence(target));
             return;
         }
 
-        //  PERSEGUIR
         motor.MoveTo(target.position, walkSpeed, 0.5f);
-        visuals.UpdateAnimationState(false); // Stand walk
+        visuals.UpdateAnimationState(false);
     }
 
     bool IsTargetDead(Transform target)
@@ -261,51 +234,81 @@ public class EnemyBrain : MonoBehaviour
         return false;
     }
 
-    // ========================================
-    // ATAQUE
-    // ========================================
-
     IEnumerator AttackSequence(Transform target)
     {
         currentState = State.Attack;
 
-        // Ejecutar ataque
         yield return StartCoroutine(combat.AttackTarget(target));
 
-        // Después del ataque
         if (senses.HasTarget && !IsTargetDead(target))
         {
-            // Sigue vivo y audible, volver a chase
             currentState = State.Chase;
         }
         else
         {
-            // Perdió el target, investigar
             yield return StartCoroutine(InvestigateLastKnown());
         }
     }
 
-    // ========================================
-    // INVESTIGACIÓN
-    // ========================================
+    IEnumerator AttackWallSequence(GameObject wall)
+    {
+        yield return StartCoroutine(combat.AttackWall(wall, senses));
+
+        if (senses.HasTarget)
+        {
+            currentState = State.Chase;
+        }
+        else
+        {
+            yield return StartCoroutine(InvestigateLastKnown());
+        }
+    }
+
+    void CheckIfStuck()
+    {
+        stuckTimer += Time.deltaTime;
+
+        if (stuckTimer >= stuckCheckInterval)
+        {
+            float distanceMoved = Vector3.Distance(transform.position, lastPosition);
+
+            if (motor.IsMoving && distanceMoved < stuckThreshold)
+            {
+                Debug.LogWarning("[EnemyBrain] Enemigo detectado atascado. Forzando investigacion.");
+
+                motor.Stop();
+                StartCoroutine(InvestigateLastKnown());
+            }
+
+            lastPosition = transform.position;
+            stuckTimer = 0f;
+        }
+    }
 
     IEnumerator InvestigateLastKnown()
     {
+        if (currentState == State.Investigate)
+        {
+            Debug.LogWarning("[EnemyBrain] Ya esta investigando, saliendo");
+            yield break;
+        }
+
         currentState = State.Investigate;
         Vector3 investigatePos = senses.LastKnownPosition;
 
-        //  Ir al último punto conocido
+        Debug.Log("[EnemyBrain] Iniciando investigacion en: " + investigatePos);
+
         motor.MoveTo(investigatePos, walkSpeed, 0.2f);
 
         float timeout = 0f;
         while (motor.GetRemainingDistance() > 0.3f && timeout < 7f)
         {
             timeout += Time.deltaTime;
-            visuals.UpdateAnimationState(false); // Stand walk
+            visuals.UpdateAnimationState(false);
 
-            // Si detecta algo nuevo, cancelar investigación
             if (senses.HasTarget)
             {
+                Debug.Log("[EnemyBrain] Target detectado durante investigacion, volviendo a Chase");
                 currentState = State.Chase;
                 yield break;
             }
@@ -313,18 +316,19 @@ public class EnemyBrain : MonoBehaviour
             yield return null;
         }
 
-        //  Detenerse y escuchar
         motor.Stop();
         visuals.UpdateAnimationState(false);
+
+        Debug.Log("[EnemyBrain] Escuchando por " + investigationDuration + " segundos");
 
         float investigateTime = 0f;
         while (investigateTime < investigationDuration)
         {
             investigateTime += Time.deltaTime;
 
-            // Si detecta algo, cancelar
             if (senses.HasTarget)
             {
+                Debug.Log("[EnemyBrain] Target detectado, cancelando investigacion");
                 currentState = State.Chase;
                 yield break;
             }
@@ -332,37 +336,26 @@ public class EnemyBrain : MonoBehaviour
             yield return null;
         }
 
-        // No encontró nada, volver a patrol
+        Debug.Log("[EnemyBrain] Investigacion completada, volviendo a patrol");
         yield return StartCoroutine(ReturnToPatrol());
     }
-
-    // ========================================
-    // VOLVER A PATRULLA
-    // ========================================
 
     IEnumerator ReturnToPatrol()
     {
         currentState = State.Return;
 
-        // Zoom in cámara
         if (cameraController)
             cameraController.StopTrackingEnemy();
 
         motor.Stop();
 
-        // ToCrawl animation
         visuals.TriggerToCrawl();
-        yield return new WaitForSeconds(2.5f); // Duración ToCrawl
+        yield return new WaitForSeconds(2.5f);
 
-        // Volver a patrol
         currentState = State.Patrol;
         motor.SetAutoRotation(true);
         GoToNextPatrolPoint();
     }
-
-    // ========================================
-    // MUERTE
-    // ========================================
 
     public void OnEnemyDeath()
     {
@@ -375,7 +368,7 @@ public class EnemyBrain : MonoBehaviour
         if (cameraController)
             cameraController.StopTrackingEnemy();
 
-        currentState = State.Patrol; // Estado dummy
-        enabled = false; // Deshabilitar script
+        currentState = State.Patrol;
+        enabled = false;
     }
 }
