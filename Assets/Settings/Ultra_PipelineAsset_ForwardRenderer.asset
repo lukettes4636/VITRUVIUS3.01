@@ -90,6 +90,23 @@ MonoBehaviour:
       restoreCamera: 1
       offset: {x: 0, y: 0, z: 0, w: 0}
       cameraFieldOfView: 60
+--- !u!114 &-1604618118283836165
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d613f08f173d4dd895bb07b3230baa9, type: 3}
+  m_Name: Terrorlens
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  passMaterial: {fileID: 2100000, guid: b55d675d0db4d1f4badc121188634867, type: 2}
+  injectionPoint: 600
+  requirements: 4
+  passIndex: 0
 --- !u!114 &-1337591233986651570
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -104,6 +121,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   passMaterial: {fileID: 2100000, guid: a0187bd7047a95e4d80490fe62b50304, type: 2}
+  injectionPoint: 600
+  requirements: 4
+  passIndex: 0
+--- !u!114 &-1220306745455121750
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d613f08f173d4dd895bb07b3230baa9, type: 3}
+  m_Name: FilmGrain
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  passMaterial: {fileID: 2100000, guid: 956e80406b7d05d42bfafa30ff19970b, type: 2}
   injectionPoint: 600
   requirements: 4
   passIndex: 0
@@ -131,7 +165,9 @@ MonoBehaviour:
   - {fileID: 4671622179066551586}
   - {fileID: 3297297046929060943}
   - {fileID: 90510800759239144}
-  m_RendererFeatureMap: 670a7dae84aeacacd4e003dab8168f07808a5fea6f6449d64b4763c08989227b4e9a8c0bdceb6fed221d19dc9eefd4404fb426c1315ac22de83197ff178f4101
+  - {fileID: -1604618118283836165}
+  - {fileID: -1220306745455121750}
+  m_RendererFeatureMap: 670a7dae84aeacacd4e003dab8168f07808a5fea6f6449d64b4763c08989227b4e9a8c0bdceb6fed221d19dc9eefd4404fb426c1315ac22de83197ff178f4101fb4489b35240bbe9aa6a22007b9910ef
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}

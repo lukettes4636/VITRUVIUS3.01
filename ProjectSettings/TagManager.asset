@@ -16,6 +16,7 @@ TagManager:
   - OriginalWall
   - NPC
   - Enemy
+  - DangerZone
   layers:
   - Default
   - TransparentFX

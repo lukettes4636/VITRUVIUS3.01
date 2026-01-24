@@ -26,7 +26,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c133717c76e564a5fa90d7f12908d17e, type: 3}
   m_Name: Beautify
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   disabled:
     m_OverrideState: 1
     m_Value: 0
