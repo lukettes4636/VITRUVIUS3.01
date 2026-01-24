@@ -62,6 +62,10 @@ public class PlayerHealth : MonoBehaviour
     [Tooltip("El Transform que marca el punto de origen de los efectos de sangre (debe estar en el pecho del jugador).")]
     [SerializeField] private Transform chestImpactPoint;
 
+    [Header("Efectos Muerte")]
+    [Tooltip("Arrastrá aquí el objeto hijo que tiene el VFX_Soul")]
+    [SerializeField] private GameObject soulVFXObject;
+
     [Header("Animation References")]
     [SerializeField] private Animator playerAnimator;
 
@@ -449,7 +453,32 @@ public class PlayerHealth : MonoBehaviour
         IsDead = true;
         canRespawn = false;
 
-        
+        // --- CÓDIGO NUEVO: ALMA ---
+        if (soulVFXObject != null)
+        {
+            // 1. PRIMERO: Lo separamos del padre.
+            // Al hacerlo null primero, cualquier movimiento que hagamos después será en COORDENADAS MUNDIALES REALES.
+            soulVFXObject.transform.SetParent(null);
+
+            // 2. SEGUNDO: Lo movemos a la posición actual de muerte.
+            // Usamos la posición del player + un poco de altura.
+            soulVFXObject.transform.position = transform.position + Vector3.up * 1.5f;
+            soulVFXObject.transform.rotation = Quaternion.identity; // Enderezamos la rotación
+
+            // 3. TERCERO: Lo prendemos.
+            soulVFXObject.SetActive(true);
+
+            // 4. CUARTO: Reiniciamos el VFX para asegurarnos que no dibuje basura vieja.
+            VisualEffect vfx = soulVFXObject.GetComponent<VisualEffect>();
+            if (vfx != null)
+            {
+                vfx.Reinit();
+                vfx.Play(); // Forzamos el play por si acaso
+            }
+
+        }   
+           
+
         IsIgnoredByCamera = false;
 
         ExitElectricTrap();
@@ -548,6 +577,13 @@ public class PlayerHealth : MonoBehaviour
     {
         if (!IsDead || !canRespawn) return;
 
+        if (soulVFXObject != null)
+        {
+            soulVFXObject.SetActive(false); 
+            soulVFXObject.transform.SetParent(this.transform); 
+            soulVFXObject.transform.localPosition = Vector3.zero; 
+            soulVFXObject.transform.localRotation = Quaternion.identity; 
+        }
 
         if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
         if (healthCanvasGroup != null) healthCanvasGroup.alpha = 0f;
