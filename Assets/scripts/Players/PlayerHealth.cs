@@ -296,10 +296,7 @@ public class PlayerHealth : MonoBehaviour
 
         if (playerAnimator != null)
         {
-            
-            
-            
-            playerAnimator.SetTrigger("Hit");
+           playerAnimator.SetTrigger("Hit");
             
         }
     }

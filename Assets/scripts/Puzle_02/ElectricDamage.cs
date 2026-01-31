@@ -90,9 +90,10 @@ public class ElectricDamage : MonoBehaviour
             if (currentTime >= playerNextDamageTime[playerHealth])
             {
                 playerHealth.SetLastDamageSource("ElectricDamage");
-                playerHealth.TakeDamage((int)damageAmount);
+              
+                playerHealth.TakeElectricDamage((int)damageAmount);
 
-                
+
                 playerNextDamageTime[playerHealth] = currentTime + damageRate;
             }
         }
