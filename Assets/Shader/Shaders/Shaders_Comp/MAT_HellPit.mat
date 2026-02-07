@@ -48,7 +48,7 @@ Material:
     - _CrackScale: 0.25
     - _HoleDepth: 5
     - _LavaIntensity: 2
-    - _OpenAmount: 0.18
+    - _OpenAmount: 1
     - _QueueControl: 0
     - _QueueOffset: 0
     - _cRACK: 50

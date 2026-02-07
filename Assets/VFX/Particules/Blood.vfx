@@ -20,7 +20,7 @@ MonoBehaviour:
     x: 553
     y: -313
     width: 1282
-    height: 2685
+    height: 2704
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -277,7 +277,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614560}
   - {fileID: 8926484042661614564}
   m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
+  m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_MasterSlot: {fileID: 8926484042661614559}
   m_MasterData:
@@ -286,7 +286,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.AABox, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"center":{"x":-0.008661508560180664,"y":1.4014217853546143,"z":-0.018482446670532228},"size":{"x":3.004997730255127,"y":3.960069179534912,"z":3.0607447624206545}}'
+      m_SerializableObject: '{"center":{"x":0.0,"y":0.0,"z":0.0},"size":{"x":1.0,"y":2.0,"z":1.0}}'
     m_Space: 0
   m_Property:
     name: bounds
@@ -4098,7 +4098,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.AABox, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"center":{"x":-4.145306587219238,"y":0.0,"z":-89.74443054199219},"size":{"x":22.9321231842041,"y":0.10000000149011612,"z":27.88886260986328}}'
+      m_SerializableObject: '{"center":{"x":2.384185791015625e-7,"y":-1.1624740362167359,"z":-0.0000362396240234375},"size":{"x":50.0,"y":0.10000000149011612,"z":50.0}}'
     m_Space: 0
   m_Property:
     name: box
@@ -4702,7 +4702,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.AABox, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"center":{"x":0.0928870439529419,"y":1.6705138683319092,"z":0.0975804328918457},"size":{"x":3.6790990829467775,"y":4.397396087646484,"z":3.4775633811950685}}'
+      m_SerializableObject: '{"center":{"x":0.0,"y":-1.5800000429153443,"z":0.0},"size":{"x":10.0,"y":0.0,"z":10.0}}'
     m_Space: 0
   m_Property:
     name: bounds

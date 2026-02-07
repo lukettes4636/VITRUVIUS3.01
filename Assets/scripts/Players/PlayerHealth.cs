@@ -324,53 +324,30 @@ public class PlayerHealth : MonoBehaviour
             cameraShake.Shake(); 
     }
 
-    
-    
-    
+
+
+
     private void PlayBloodEffect()
     {
-        if (bloodParticlesPrefab == null)
-        {
-            return;
-        }
+        if (bloodParticlesPrefab == null || chestImpactPoint == null) return;
 
-        if (chestImpactPoint == null)
-        {
-            return;
-        }
-        
-        
-        
-
+        Vector3 spawnPos = chestImpactPoint.position;
         Quaternion randomRotation = Quaternion.Euler(0, UnityEngine.Random.Range(0f, 360f), 0);
 
-        
-        Vector3 spawnPos = chestImpactPoint.position;
+        // 1. Instanciamos (El original está DESACTIVADO, así que el clon nace DESACTIVADO)
+        VisualEffect bloodInstance = Instantiate(bloodParticlesPrefab, spawnPos, randomRotation);
 
-        
-        VisualEffect bloodVFX = Instantiate(bloodParticlesPrefab, spawnPos, randomRotation);
-        
-        
-        bloodVFX.Play();
+        // 2. IMPORTANTE: Activamos el clon explícitamente
+        bloodInstance.gameObject.SetActive(true);
 
-        
-        StartCoroutine(AttachAndDetachVFX(bloodVFX, chestImpactPoint, 0.05f, 2.5f));
+        // 3. Reproducimos
+        bloodInstance.Play();
+
+        // 4. Limpieza
+        Destroy(bloodInstance.gameObject, 5.0f);
     }
 
-    private IEnumerator AttachAndDetachVFX(VisualEffect vfx, Transform parent, float attachDelay, float lifetime)
-    {
-        
-        yield return new WaitForSeconds(attachDelay);
 
-        if (vfx != null && parent != null)
-        {
-            vfx.transform.SetParent(parent);
-            vfx.transform.localPosition = Vector3.zero;
-        }
-
-        yield return new WaitForSeconds(lifetime);
-        if (vfx != null) Destroy(vfx.gameObject);
-    }
 
     private void CheckCriticalHealthState()
     {
