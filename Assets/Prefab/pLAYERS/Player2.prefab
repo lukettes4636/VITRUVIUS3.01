@@ -7144,6 +7144,9 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 838673fbe17fdd949b813c4dced5b639, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 7264090610325347304}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 838673fbe17fdd949b813c4dced5b639, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 7268437569963103292}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 838673fbe17fdd949b813c4dced5b639, type: 3}
       insertIndex: -1
@@ -7251,6 +7254,22 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 838673fbe17fdd949b813c4dced5b639, type: 3}
   m_PrefabInstance: {fileID: 277461246597948596}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7264090610325347304
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1087852789908199909}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4e978fb976230348a96e5d689dbc7b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  terrorLensMat: {fileID: 2100000, guid: b55d675d0db4d1f4badc121188634867, type: 2}
+  dangerProperty: _DangerLevel
+  zoneTag: DangerZone
+  transitionSpeed: 2
 --- !u!114 &7268437569963103292
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7532,7 +7551,7 @@ MonoBehaviour:
   criticalPainSound: {fileID: 8300000, guid: a0eaf18457f66714dada756e4a57709f, type: 3}
   healthSlider: {fileID: 1107295794265387973}
   healthText: {fileID: 2526732771691094918}
-  bloodParticlesPrefab: {fileID: 4754827153749702579}
+  bloodParticles: {fileID: 4754827153749702579}
   chestImpactPoint: {fileID: 4652583682576642230}
   playerAnimator: {fileID: 5959150855644567845}
   submitAction: {fileID: 7039118505176962896, guid: 295849145aa15794186b1a0e054148ca, type: 3}

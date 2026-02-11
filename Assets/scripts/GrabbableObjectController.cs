@@ -17,6 +17,10 @@ namespace Gameplay
 
         [Header("Interaction Settings")]
         public float GrabRadius = 2.0f;
+        [Tooltip("Tiempo en segundos antes de poder agarrar el objeto después de soltarlo")]
+        public float PickupCooldown = 0.3f;
+        [Tooltip("Layer mask para detectar obstáculos entre el jugador y el objeto")]
+        public LayerMask ObstacleLayer = -1;
 
         [Header("Posicion Base del Objeto")]
         public Vector3 HoldOffset = new Vector3(0.5f, 0.8f, 0.7f);
@@ -63,7 +67,10 @@ namespace Gameplay
         protected Animator holderAnimator;
         protected PlayerGrabProfile currentHolderProfile;
 
-        
+        // Sistema de cooldown
+        private float lastDropTime = -999f;
+        private Transform lastHolderTransform;
+
         private Renderer meshRenderer;
         private MaterialPropertyBlock propertyBlock;
         private int outlineColorID;
@@ -115,9 +122,12 @@ namespace Gameplay
 
         protected virtual void HandleIdleState()
         {
+            // Verificar si el cooldown ha pasado
+            float timeSinceLastDrop = Time.time - lastDropTime;
+            bool cooldownActive = timeSinceLastDrop < PickupCooldown;
+
             Collider[] nearbyColliders = Physics.OverlapSphere(transform.position, GrabRadius, PlayerLayer);
 
-            
             UpdateOutlineDetection(nearbyColliders);
 
             foreach (var nearbyCol in nearbyColliders)
@@ -126,6 +136,22 @@ namespace Gameplay
                 if (playerInput == null || playerInput.actions == null) continue;
                 if (IsPlayerHoldingSomething(playerInput.transform)) continue;
 
+                // NUEVO: Verificar si este jugador fue quien soltó el objeto recientemente
+                if (cooldownActive && lastHolderTransform == playerInput.transform)
+                {
+                    if (VerboseLogging)
+                        Debug.Log($"[GrabbableObject] {playerInput.name} intentó agarrar {gameObject.name} durante cooldown. Bloqueado.");
+                    continue;
+                }
+
+                // NUEVO: Verificar que no hay paredes/obstáculos entre el jugador y el objeto
+                if (!HasClearLineOfSight(playerInput.transform.position))
+                {
+                    if (VerboseLogging)
+                        Debug.Log($"[GrabbableObject] {playerInput.name} no tiene línea de visión clara a {gameObject.name}");
+                    continue;
+                }
+
                 InputAction interactAction = playerInput.actions.FindAction(ActionName);
                 if (interactAction != null && interactAction.WasPerformedThisFrame())
                 {
@@ -133,6 +159,36 @@ namespace Gameplay
                     break;
                 }
             }
+        }
+
+        /// <summary>
+        /// Verifica que no hay obstáculos entre el jugador y el objeto
+        /// </summary>
+        private bool HasClearLineOfSight(Vector3 playerPosition)
+        {
+            Vector3 directionToObject = transform.position - playerPosition;
+            float distanceToObject = directionToObject.magnitude;
+
+            // Raycast desde el jugador hacia el objeto
+            if (Physics.Raycast(playerPosition, directionToObject.normalized, out RaycastHit hit, distanceToObject, ObstacleLayer))
+            {
+                // Si el raycast golpeó algo antes de llegar al objeto, hay un obstáculo
+                if (hit.collider.gameObject != gameObject)
+                {
+                    return false;
+                }
+            }
+
+            // También hacer un SphereCast para objetos más grandes
+            if (Physics.SphereCast(playerPosition, 0.1f, directionToObject.normalized, out RaycastHit sphereHit, distanceToObject, ObstacleLayer))
+            {
+                if (sphereHit.collider.gameObject != gameObject)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private void UpdateOutlineDetection(Collider[] nearbyColliders)
@@ -158,7 +214,6 @@ namespace Gameplay
             }
             else
             {
-                
                 GameObject player = hoveringPlayers.First();
                 PlayerIdentifier pi = player.GetComponent<PlayerIdentifier>();
                 if (pi != null)
@@ -175,8 +230,7 @@ namespace Gameplay
             meshRenderer.GetPropertyBlock(propertyBlock);
             propertyBlock.SetColor(outlineColorID, color);
             propertyBlock.SetFloat(outlineScaleID, scale);
-            
-            
+
             meshRenderer.SetPropertyBlock(propertyBlock);
         }
 
@@ -240,7 +294,10 @@ namespace Gameplay
             isThrowingInProgress = false;
             currentHolder = holder;
 
-            
+            // Resetear el cooldown cuando se agarra
+            lastDropTime = -999f;
+            lastHolderTransform = null;
+
             SetOutlineState(Color.black, 0f);
             hoveringPlayers.Clear();
 
@@ -274,6 +331,9 @@ namespace Gameplay
                 ikSystem.ApplyProfile(currentHolderProfile);
                 ikSystem.StartCarrying(this.gameObject);
             }
+
+            if (VerboseLogging)
+                Debug.Log($"[GrabbableObject] {gameObject.name} fue agarrado por {holder.name}");
         }
 
         public virtual void Drop()
@@ -284,6 +344,13 @@ namespace Gameplay
                 if (ikSystem == null) ikSystem = currentHolder.GetComponentInParent<ObjectCarryingSystem>();
 
                 if (ikSystem != null) ikSystem.StopCarrying();
+
+                // NUEVO: Guardar referencia del jugador que soltó el objeto y el tiempo
+                lastHolderTransform = currentHolder;
+                lastDropTime = Time.time;
+
+                if (VerboseLogging)
+                    Debug.Log($"[GrabbableObject] {gameObject.name} fue soltado por {currentHolder.name}. Cooldown activo por {PickupCooldown}s");
             }
 
             if (currentHolderCollider != null && col != null) StartCoroutine(ResetCollisionDelay(col, currentHolderCollider, 0.5f));
@@ -303,6 +370,9 @@ namespace Gameplay
             if (currentHolder == null) yield break;
             isThrowingInProgress = true;
 
+            // NUEVO: Guardar referencia antes de lanzar
+            Transform thrower = currentHolder;
+
             var ikSystem = currentHolder.GetComponent<ObjectCarryingSystem>();
             if (ikSystem == null) ikSystem = currentHolder.GetComponentInParent<ObjectCarryingSystem>();
 
@@ -320,15 +390,20 @@ namespace Gameplay
                 yield return null;
             }
 
-            ExecutePhysicsThrow();
+            ExecutePhysicsThrow(thrower);
         }
 
-        protected void ExecutePhysicsThrow()
+        protected void ExecutePhysicsThrow(Transform thrower = null)
         {
-            if (currentHolder == null) { Drop(); return; }
+            if (currentHolder == null && thrower == null) { Drop(); return; }
 
-            Vector3 throwDirection = currentHolder.forward;
+            Transform actualThrower = thrower != null ? thrower : currentHolder;
+            Vector3 throwDirection = actualThrower.forward;
             Collider tempHolderCollider = currentHolderCollider;
+
+            // NUEVO: Guardar referencia del jugador que lanzó
+            lastHolderTransform = actualThrower;
+            lastDropTime = Time.time;
 
             isHeld = false;
             isThrowingInProgress = false;
@@ -345,6 +420,9 @@ namespace Gameplay
             rb.AddTorque(UnityEngine.Random.insideUnitSphere * 10f, ForceMode.Impulse);
 
             if (tempHolderCollider != null && col != null) StartCoroutine(ResetCollisionDelay(col, tempHolderCollider, 0.5f));
+
+            if (VerboseLogging)
+                Debug.Log($"[GrabbableObject] {gameObject.name} fue lanzado por {actualThrower.name}. Cooldown activo por {PickupCooldown}s");
         }
 
         private IEnumerator ResetCollisionDelay(Collider objectCol, Collider playerCol, float delay)

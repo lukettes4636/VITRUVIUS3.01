@@ -206,6 +206,10 @@ MonoBehaviour:
   ActionName: Action Button
   ThrowActionName: Throw Action Button
   GrabRadius: 2
+  PickupCooldown: 1.5
+  ObstacleLayer:
+    serializedVersion: 2
+    m_Bits: 43008
   HoldOffset: {x: 0, y: 1.19, z: 0.3}
   HoldRotation: {x: 0, y: 0, z: 0}
   CrouchHoldOffset: {x: 0.26, y: 0.72, z: 0.42}
@@ -222,6 +226,10 @@ MonoBehaviour:
   CollisionVolume: 1
   NoiseRange: 15
   MinCollisionForce: 2
+  outlineColorProperty: _Outline_Color
+  outlineScaleProperty: _Outline_Scale
+  activeOutlineScale: 0.0125
+  cooperativeOutlineColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   VerboseLogging: 0
 --- !u!65 &4342139923815697916
 BoxCollider:

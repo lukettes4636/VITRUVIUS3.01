@@ -8135,7 +8135,7 @@ MonoBehaviour:
   criticalPainSound: {fileID: 8300000, guid: 9599dd3f46ea40c438333d6f897a35cb, type: 3}
   healthSlider: {fileID: 5545594788954461024}
   healthText: {fileID: 5855504487200711637}
-  bloodParticlesPrefab: {fileID: 4130487178558733183}
+  bloodParticles: {fileID: 4130487178558733183}
   chestImpactPoint: {fileID: 4107678851711897870}
   playerAnimator: {fileID: 5149449667431359345}
   submitAction: {fileID: -5903233257445148360, guid: 269b7ea41e12a1c4fa4acf55504e68e5, type: 3}
