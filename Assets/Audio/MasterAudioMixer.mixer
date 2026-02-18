@@ -49,23 +49,22 @@ AudioMixerController:
   m_EnableSuspend: 1
   m_UpdateMode: 0
   m_ExposedParameters:
-  - guid: afcf6b643054c114aaf4d708d6dd9de8
-    name: MasterVolume
-  - guid: 1fb81f2cdec2dea4d83347d62f576793
-    name: MusicVolume
-  - guid: 2c596e75d53b8214293856f1fd4ca775
-    name: SFXVolume
   - guid: 18500015aab8ca9458944be5002398a1
     name: AmbientVolume
+  - guid: afcf6b643054c114aaf4d708d6dd9de8
+    name: Master
+  - guid: 1fb81f2cdec2dea4d83347d62f576793
+    name: Music
+  - guid: 2c596e75d53b8214293856f1fd4ca775
+    name: SFX
   - guid: 6ed777210c988d64ca9d4afeb0caf690
     name: VoiceVolume
   m_AudioMixerGroupViews:
   - guids:
     - 5c2b316c9f3dfac499cde0debdf4c665
-    - 1ae9b78ab4e18a6408d30b6a00c2a4a8
     - a3d793b34c1372e4fabdd747b8ab50bf
     - e61b660f625ca824b8870f9ff4ead6b0
-    - f23794fb1b9c6e749811df904d79b529
+    - 1ae9b78ab4e18a6408d30b6a00c2a4a8
     name: View
   m_CurrentViewIndex: 0
   m_TargetSnapshot: {fileID: 24500006}
@@ -80,7 +79,6 @@ AudioMixerGroupController:
   m_GroupID: 5c2b316c9f3dfac499cde0debdf4c665
   m_Children:
   - {fileID: 3449381467981265557}
-  - {fileID: -6128694435342565484}
   - {fileID: 910449634071062325}
   - {fileID: 4373946333018380611}
   m_Volume: afcf6b643054c114aaf4d708d6dd9de8
@@ -133,7 +131,8 @@ AudioMixerGroupController:
   m_Name: Music
   m_AudioMixer: {fileID: 24100000}
   m_GroupID: 1ae9b78ab4e18a6408d30b6a00c2a4a8
-  m_Children: []
+  m_Children:
+  - {fileID: -6128694435342565484}
   m_Volume: 1fb81f2cdec2dea4d83347d62f576793
   m_Pitch: 681e1a5bd5ec6654a82a38668df69337
   m_Send: 00000000000000000000000000000000

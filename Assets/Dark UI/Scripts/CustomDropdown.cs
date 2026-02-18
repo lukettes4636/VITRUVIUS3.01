@@ -162,8 +162,10 @@ namespace Michsky.UI.Dark
                     siblingIndex = transform.GetSiblingIndex();
                     gameObject.transform.SetParent(listParent, true);
                 }
-            }
 
+                // --- NUEVO: Pasar el foco a la lista con un retraso ---
+                StartCoroutine(FocusDropdownItem());
+            }
             else if (isOn == true)
             {
                 dropdownAnimator.Play("Dropdown Out");
@@ -174,11 +176,16 @@ namespace Michsky.UI.Dark
                     gameObject.transform.SetParent(currentListParent, true);
                     gameObject.transform.SetSiblingIndex(siblingIndex);
                 }
+
+                // --- NUEVO: Devolver el foco al botón principal (Trigger) al cerrar ---
+                if (triggerObject != null)
+                {
+                    UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(triggerObject);
+                }
             }
 
             if (enableTrigger == true && isOn == false)
                 triggerObject.SetActive(false);
-
             else if (enableTrigger == true && isOn == true)
                 triggerObject.SetActive(true);
 
@@ -187,6 +194,17 @@ namespace Michsky.UI.Dark
 
             if (setHighPriorty == true)
                 transform.SetAsLastSibling();
+        }
+
+        // --- NUEVA CORUTINA PARA EL JOYSTICK ---
+        private IEnumerator FocusDropdownItem()
+        {
+            // Esperamos un poquito para que la animación haga visibles los botones
+            yield return new WaitForSeconds(0.15f);
+            if (itemParent != null && itemParent.childCount > 0)
+            {
+                UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(itemParent.GetChild(0).gameObject);
+            }
         }
 
         public void OnPointerExit(PointerEventData eventData)
