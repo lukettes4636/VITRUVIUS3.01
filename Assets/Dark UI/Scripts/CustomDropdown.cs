@@ -137,10 +137,30 @@ namespace Michsky.UI.Dark
                     dropdownItems[i].OnItemSelection.Invoke();
             }
 
+            // --- CÓDIGO NUEVO: Forzar Navegación Explícita para Joystick ---
+            Button[] botonesGenerados = itemParent.GetComponentsInChildren<Button>();
+            for (int j = 0; j < botonesGenerados.Length; j++)
+            {
+                UnityEngine.UI.Navigation nav = new UnityEngine.UI.Navigation();
+                nav.mode = UnityEngine.UI.Navigation.Mode.Explicit;
+
+                // Conectar con el botón de arriba
+                if (j > 0)
+                    nav.selectOnUp = botonesGenerados[j - 1];
+
+                // Conectar con el botón de abajo
+                if (j < botonesGenerados.Length - 1)
+                    nav.selectOnDown = botonesGenerados[j + 1];
+
+                botonesGenerados[j].navigation = nav;
+            }
+            // -----------------------------------------------------------------
+
             selectedText.text = dropdownItems[selectedItemIndex].itemName;
             selectedImage.sprite = dropdownItems[selectedItemIndex].itemIcon;
             currentListParent = transform.parent;
         }
+        
 
         public void ChangeDropdownInfo(int itemIndex)
         {
