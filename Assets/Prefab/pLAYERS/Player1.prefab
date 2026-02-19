@@ -7721,6 +7721,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f90fe92770576b248b1755b7a92123ad, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1266051557845587990}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f90fe92770576b248b1755b7a92123ad, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5068722542807919049}
     - targetCorrespondingSourceObject: {fileID: -8646220200698385527, guid: f90fe92770576b248b1755b7a92123ad, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8345316624036088341}
@@ -8018,7 +8021,7 @@ MonoBehaviour:
   currentNoiseRadius: 0
   isRingVisible: 0
   toggleNoiseRingAction: {fileID: 1591110641932267016, guid: 269b7ea41e12a1c4fa4acf55504e68e5, type: 3}
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 5068722542807919049}
   ringOnClip: {fileID: 8300000, guid: 9719067e20dfe6243afb97fd8d41483f, type: 3}
   ringOffClip: {fileID: 8300000, guid: 9719067e20dfe6243afb97fd8d41483f, type: 3}
   audioVolume: 0.3
@@ -8200,7 +8203,7 @@ MonoBehaviour:
   - Flashlight
   keyCardStatusText: {fileID: 0}
   itemsCollectedText: {fileID: 0}
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 5068722542807919049}
   keyCardCollectSound: {fileID: 0}
   itemCollectSound: {fileID: 8300000, guid: c526c55cd45195049ae424e544db6b00, type: 3}
 --- !u!114 &1378080714318288446
@@ -8259,7 +8262,7 @@ MonoBehaviour:
   crouchFootstepClip: {fileID: 0}
   tiredAnimationBool: IsTired
   pantingSound: {fileID: 8300000, guid: d0087bec53f677b49996230c001f670c, type: 3}
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 5068722542807919049}
   cooldownStartClip: {fileID: 0}
   cooldownVolume: 1
   popupBillboard: {fileID: 1909175352447237019}
@@ -8373,6 +8376,102 @@ MonoBehaviour:
   - m_Rig: {fileID: 3295123704303478018}
     m_Active: 1
   m_Effectors: []
+--- !u!82 &5068722542807919049
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1935836767537226673}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 3449381467981265557, guid: 1c4fd34be5288874b81f70e988ce17aa, type: 2}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!4 &2122848716466454217 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8400955822856789975, guid: f90fe92770576b248b1755b7a92123ad, type: 3}
@@ -9077,7 +9176,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5493907487898160316, guid: 94a8fbf95e36167458a1b487905bce26, type: 3}
       propertyPath: m_Shadows.m_Strength
-      value: 0.0067270095
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5493907487898160316, guid: 94a8fbf95e36167458a1b487905bce26, type: 3}
       propertyPath: m_Shadows.m_NormalBias

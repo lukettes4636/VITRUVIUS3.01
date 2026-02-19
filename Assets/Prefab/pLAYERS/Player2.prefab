@@ -7208,6 +7208,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 838673fbe17fdd949b813c4dced5b639, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1631203414964412039}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 838673fbe17fdd949b813c4dced5b639, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8846309547381727873}
   m_SourcePrefab: {fileID: 100100000, guid: 838673fbe17fdd949b813c4dced5b639, type: 3}
 --- !u!4 &34831185171470559 stripped
 Transform:
@@ -7472,7 +7475,7 @@ MonoBehaviour:
   currentNoiseRadius: 0
   isRingVisible: 0
   toggleNoiseRingAction: {fileID: -5612948386606521513, guid: 295849145aa15794186b1a0e054148ca, type: 3}
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 8846309547381727873}
   ringOnClip: {fileID: 8300000, guid: 9719067e20dfe6243afb97fd8d41483f, type: 3}
   ringOffClip: {fileID: 8300000, guid: 9719067e20dfe6243afb97fd8d41483f, type: 3}
   audioVolume: 0.3
@@ -7637,7 +7640,7 @@ MonoBehaviour:
   - Flashlight
   keyCardStatusText: {fileID: 0}
   itemsCollectedText: {fileID: 0}
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 8846309547381727873}
   keyCardCollectSound: {fileID: 8300000, guid: c526c55cd45195049ae424e544db6b00, type: 3}
   itemCollectSound: {fileID: 8300000, guid: c526c55cd45195049ae424e544db6b00, type: 3}
 --- !u!114 &1938013484018659613
@@ -7687,7 +7690,7 @@ MonoBehaviour:
   crouchFootstepClip: {fileID: 0}
   tiredAnimationBool: IsTired
   pantingSound: {fileID: 8300000, guid: c9df32510e8e52f448c5f0f63cf20c7a, type: 3}
-  audioSource: {fileID: 0}
+  audioSource: {fileID: 8846309547381727873}
   cooldownStartClip: {fileID: 0}
   cooldownVolume: 1
   popupBillboard: {fileID: 8718005129301848810}
@@ -7801,6 +7804,102 @@ MonoBehaviour:
   - m_Rig: {fileID: 4858587632985691117}
     m_Active: 1
   m_Effectors: []
+--- !u!82 &8846309547381727873
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1087852789908199909}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 3449381467981265557, guid: 1c4fd34be5288874b81f70e988ce17aa, type: 2}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!4 &1164742044394521641 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1436722220091138205, guid: 838673fbe17fdd949b813c4dced5b639, type: 3}

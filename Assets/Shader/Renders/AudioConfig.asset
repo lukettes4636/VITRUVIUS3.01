@@ -15,6 +15,8 @@ MonoBehaviour:
   masterMixerGroup: {fileID: 24300002, guid: 1c4fd34be5288874b81f70e988ce17aa, type: 2}
   musicMixerGroup: {fileID: 910449634071062325, guid: 1c4fd34be5288874b81f70e988ce17aa, type: 2}
   sfxMixerGroup: {fileID: 3449381467981265557, guid: 1c4fd34be5288874b81f70e988ce17aa, type: 2}
+  ambientMixerGroup: {fileID: 0}
+  voiceMixerGroup: {fileID: 0}
   player1Footsteps:
   - {fileID: 8300000, guid: b993df4a93c1d304ab19d8b2eb88c9a5, type: 3}
   player2Footsteps:

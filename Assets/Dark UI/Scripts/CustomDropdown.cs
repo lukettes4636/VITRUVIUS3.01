@@ -49,7 +49,7 @@ namespace Michsky.UI.Dark
         string textHelper;
         string newItemTitle;
         Sprite newItemIcon;
-        bool isOn;
+        public bool isOn;
         [HideInInspector] public int index = 0;
         [HideInInspector] public int siblingIndex = 0;
 
@@ -96,7 +96,16 @@ namespace Michsky.UI.Dark
                     ChangeDropdownInfo(PlayerPrefs.GetInt(dropdownTag + "Dropdown"));
             }
         }
-
+        void Update()
+        {
+            // LÓGICA BOTÓN ATRÁS (B / CÍRCULO)
+            // Si el menú está desplegado (isOn) y apretamos Cancelar,
+            // llamamos a Animate() para cerrarlo suavemente y devolver el foco.
+            if (isOn == true && Input.GetButtonDown("Cancel"))
+            {
+                Animate();
+            }
+        }
         public void SetupDropdown()
         {
             foreach (Transform child in itemParent)
@@ -124,31 +133,40 @@ namespace Michsky.UI.Dark
                 if (dropdownItems[i].OnItemSelection != null)
                     itemButton.onClick.AddListener(dropdownItems[i].OnItemSelection.Invoke);
 
-                itemButton.onClick.AddListener(Animate);
+                // --- AQUÍ ESTÁ LA CORRECCIÓN DE NAVEGACIÓN AL SELECCIONAR ---
                 itemButton.onClick.AddListener(delegate
                 {
                     ChangeDropdownInfo(index = go.transform.GetSiblingIndex());
 
                     if (saveSelected == true)
                         PlayerPrefs.SetInt(dropdownTag + "Dropdown", go.transform.GetSiblingIndex());
+
+                    // 1. Cerramos el menú visualmente
+                    Animate();
+
+                    // 2. FORZAMOS el foco de vuelta al botón principal (Trigger)
+                    // Esto evita que el joystick se quede atrapado en el botón que acabamos de destruir
+                    if (triggerObject != null)
+                    {
+                        UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(triggerObject);
+                    }
                 });
+                // -----------------------------------------------------------
 
                 if (invokeAtStart == true)
                     dropdownItems[i].OnItemSelection.Invoke();
             }
 
-            // --- CÓDIGO NUEVO: Forzar Navegación Explícita para Joystick ---
+            // --- Lógica de Navegación Explícita para Joystick (Que ya tenías) ---
             Button[] botonesGenerados = itemParent.GetComponentsInChildren<Button>();
             for (int j = 0; j < botonesGenerados.Length; j++)
             {
                 UnityEngine.UI.Navigation nav = new UnityEngine.UI.Navigation();
                 nav.mode = UnityEngine.UI.Navigation.Mode.Explicit;
 
-                // Conectar con el botón de arriba
                 if (j > 0)
                     nav.selectOnUp = botonesGenerados[j - 1];
 
-                // Conectar con el botón de abajo
                 if (j < botonesGenerados.Length - 1)
                     nav.selectOnDown = botonesGenerados[j + 1];
 
@@ -160,7 +178,7 @@ namespace Michsky.UI.Dark
             selectedImage.sprite = dropdownItems[selectedItemIndex].itemIcon;
             currentListParent = transform.parent;
         }
-        
+
 
         public void ChangeDropdownInfo(int itemIndex)
         {

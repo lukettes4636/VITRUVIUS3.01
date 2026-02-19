@@ -433,11 +433,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   masterMixer: {fileID: 24100000, guid: 1c4fd34be5288874b81f70e988ce17aa, type: 2}
-  audioConfig: {fileID: 11400000, guid: e5f72f061b59111449a695f12b280bf7, type: 2}
+  audioConfig: {fileID: 11400000, guid: 9e4fcd3af641fd741b5c89fbfb894b92, type: 2}
   musicSource: {fileID: 6310409853032804329}
-  ambientSource: {fileID: 7989518562612609994}
   sfxSource: {fileID: 8519054500211903089}
-  voiceSource: {fileID: 1227226072145429436}
 --- !u!1 &8722043664677709253
 GameObject:
   m_ObjectHideFlags: 0

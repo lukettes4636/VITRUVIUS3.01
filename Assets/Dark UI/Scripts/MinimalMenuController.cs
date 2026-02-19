@@ -1,13 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Audio;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using TMPro;
+using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace Michsky.UI.Dark
 {
@@ -108,6 +109,29 @@ namespace Michsky.UI.Dark
             BindAudioSliders();
             LoadPrefs();
             WireMenuButtons();
+        }
+        // ═══════════════════════════════════════════════════════════════
+        //  INPUT UPDATE — CERRAR CON BOTÓN B (CANCEL)
+        // ═══════════════════════════════════════════════════════════════
+        void Update()
+        {
+            // Verificamos si el Dropdown de calidad existe y si está abierto
+            bool isQualityDropdownOpen = qualityDropdown != null && qualityDropdown.isOn;
+
+            // También verificamos el de resolución por si acaso
+            bool isResDropdownOpen = resolutionDropdown != null && resolutionDropdown.isOn;
+
+            // Si se presiona el botón "Cancel" (B en Xbox / Círculo en PS)
+            if (Input.GetButtonDown("Cancel"))
+            {
+                // Solo cerramos el panel de Settings SI:
+                // 1. El panel es visible (Alpha > 0)
+                // 2. Y NINGUNO de los dropdowns está abierto (porque si están abiertos, ellos se cierran solos)
+                if (settingsCanvasGroup != null && settingsCanvasGroup.alpha > 0.1f && !isQualityDropdownOpen && !isResDropdownOpen)
+                {
+                    CloseSettingsMenu();
+                }
+            }
         }
 
         // ═══════════════════════════════════════════════════════════════
@@ -308,18 +332,29 @@ namespace Michsky.UI.Dark
         }
 
         // ═══════════════════════════════════════════════════════════════
-        //  AUDIO SETTERS — Escala logarítmica + persistencia
-        //  Los sliders deben configurarse con mínimo 0.0001 y máximo 1
-        //  para que la fórmula logarítmica produzca decibelios correctos.
+        //  AUDIO SETTERS — Con Corte a Silencio Total (-80dB)
         // ═══════════════════════════════════════════════════════════════
         public void SetMasterVolume(float v)
         {
             PlayerPrefs.SetFloat("MasterVolume", v);
 
             if (audioMixer != null)
-                audioMixer.SetFloat("Master", Mathf.Log10(Mathf.Clamp(v, 0.0001f, 1f)) * 20f);
+            {
+                // Si el valor es muy bajo (casi 0), silenciamos totalmente a -80dB
+                if (v <= 0.001f)
+                {
+                    audioMixer.SetFloat("Master", -80f);
+                }
+                else
+                {
+                    audioMixer.SetFloat("Master", Mathf.Log10(v) * 20f);
+                }
+            }
             else
-                AudioListener.volume = Mathf.Clamp(v, 0f, 1f);
+            {
+                // Fallback si no hay mixer (AudioListener usa escala lineal 0-1)
+                AudioListener.volume = v <= 0.001f ? 0f : v;
+            }
         }
 
         public void SetMusicVolume(float v)
@@ -327,7 +362,16 @@ namespace Michsky.UI.Dark
             PlayerPrefs.SetFloat("MusicVolume", v);
 
             if (audioMixer != null)
-                audioMixer.SetFloat("Music", Mathf.Log10(Mathf.Clamp(v, 0.0001f, 1f)) * 20f);
+            {
+                if (v <= 0.001f)
+                {
+                    audioMixer.SetFloat("Music", -80f);
+                }
+                else
+                {
+                    audioMixer.SetFloat("Music", Mathf.Log10(v) * 20f);
+                }
+            }
         }
 
         public void SetSFXVolume(float v)
@@ -335,7 +379,16 @@ namespace Michsky.UI.Dark
             PlayerPrefs.SetFloat("SFXVolume", v);
 
             if (audioMixer != null)
-                audioMixer.SetFloat("SFX", Mathf.Log10(Mathf.Clamp(v, 0.0001f, 1f)) * 20f);
+            {
+                if (v <= 0.001f)
+                {
+                    audioMixer.SetFloat("SFX", -80f);
+                }
+                else
+                {
+                    audioMixer.SetFloat("SFX", Mathf.Log10(v) * 20f);
+                }
+            }
         }
 
         // ═══════════════════════════════════════════════════════════════

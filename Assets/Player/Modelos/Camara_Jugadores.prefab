@@ -48,10 +48,10 @@ MonoBehaviour:
   targets:
   - {fileID: 0}
   - {fileID: 0}
-  edgeBuffer: 4
-  minSize: 6
-  maxSize: 20
-  smoothTime: 0.2
+  edgeBuffer: 6
+  minSize: 2
+  maxSize: 30
+  smoothTime: 0.5
 --- !u!1 &2713324430445745719
 GameObject:
   m_ObjectHideFlags: 0
