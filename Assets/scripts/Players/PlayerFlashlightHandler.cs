@@ -16,7 +16,7 @@ public class PlayerFlashlightHandler : MonoBehaviour
 
     
     private GameObject _flashlightRoot;
-    private FlashlightController _controller;
+    private FlashlightController_Enhanced _controller;
 
     void Start()
     {
@@ -40,13 +40,14 @@ public class PlayerFlashlightHandler : MonoBehaviour
         
         if (_flashlightRoot != null)
         {
-            _controller = _flashlightRoot.GetComponent<FlashlightController>();
-            _flashlightRoot.SetActive(false); 
+            // CORRECCIÓN: Ahora hace el GetComponent del Enhanced
+            _controller = _flashlightRoot.GetComponent<FlashlightController_Enhanced>();
+            _flashlightRoot.SetActive(false);
         }
 
         
         if (_flashlightRoot != null && _controller == null)
-            _controller = _flashlightRoot.GetComponent<FlashlightController>();
+            _controller = _flashlightRoot.GetComponent<FlashlightController_Enhanced>();
     }
 
     void Update()

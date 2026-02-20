@@ -2854,8 +2854,9 @@ MonoBehaviour:
   liftSound: {fileID: 8300000, guid: 52e945fc0ab59e1489c1ad4c30091cc4, type: 3}
   dropSound: {fileID: 8300000, guid: 1e1758ef204030243b03a7aba76cb802, type: 3}
   maxHeightSound: {fileID: 8300000, guid: d81a9f391ef37d84f9d226d854aed264, type: 3}
-  effortVoiceP1: {fileID: 0}
-  effortVoiceP2: {fileID: 0}
+  effortVoiceP1: {fileID: 8300000, guid: 5bb4776e2d2d1b144ae5f7f1e690827e, type: 3}
+  effortVoiceP2: {fileID: 8300000, guid: 6b97f599f9106fa42ac84c6023c08da8, type: 3}
+  targetMixerGroup: {fileID: 3449381467981265557, guid: 1c4fd34be5288874b81f70e988ce17aa, type: 2}
   dropRumbleDuration: 0.5
   dropLowFrequency: 0.5
   dropHighFrequency: 0.5

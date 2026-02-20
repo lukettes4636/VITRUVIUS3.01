@@ -63,7 +63,7 @@ public class MovJugador2 : MonoBehaviour
     [SerializeField] private Vector3 sphereOffset = new Vector3(0, 1f, 0);
 
     [Header("Flashlight Animation")]
-    private FlashlightController flashlightController;
+    private FlashlightController_Enhanced flashlightController;
 
     [Header("Inventory Settings")]
     [SerializeField] private GameObject inventoryCanvas;
@@ -221,7 +221,7 @@ public class MovJugador2 : MonoBehaviour
             gamepad = playerInput.devices[0] as Gamepad;
         }
 
-        flashlightController = GetComponentInChildren<FlashlightController>();
+        flashlightController = GetComponentInChildren<FlashlightController_Enhanced>();
     }
 
     private void InitializeStamina()

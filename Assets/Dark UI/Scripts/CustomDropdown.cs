@@ -127,13 +127,14 @@ namespace Michsky.UI.Dark
                 imageHelper = dropdownItems[i].itemIcon;
                 setItemImage.sprite = imageHelper;
 
-                Button itemButton;
-                itemButton = go.GetComponent<Button>();
+                Button itemButton = go.GetComponent<Button>();
+
+                // --- CORRECCIÓN 1: Evitamos el glitch de la doble animación ---
+                itemButton.onClick.RemoveAllListeners();
 
                 if (dropdownItems[i].OnItemSelection != null)
                     itemButton.onClick.AddListener(dropdownItems[i].OnItemSelection.Invoke);
 
-                // --- AQUÍ ESTÁ LA CORRECCIÓN DE NAVEGACIÓN AL SELECCIONAR ---
                 itemButton.onClick.AddListener(delegate
                 {
                     ChangeDropdownInfo(index = go.transform.GetSiblingIndex());
@@ -141,38 +142,26 @@ namespace Michsky.UI.Dark
                     if (saveSelected == true)
                         PlayerPrefs.SetInt(dropdownTag + "Dropdown", go.transform.GetSiblingIndex());
 
-                    // 1. Cerramos el menú visualmente
+                    // Cerramos visualmente
                     Animate();
-
-                    // 2. FORZAMOS el foco de vuelta al botón principal (Trigger)
-                    // Esto evita que el joystick se quede atrapado en el botón que acabamos de destruir
-                    if (triggerObject != null)
-                    {
-                        UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(triggerObject);
-                    }
                 });
-                // -----------------------------------------------------------
 
                 if (invokeAtStart == true)
                     dropdownItems[i].OnItemSelection.Invoke();
             }
 
-            // --- Lógica de Navegación Explícita para Joystick (Que ya tenías) ---
+            // --- NAVEGACIÓN EXPLÍCITA ---
             Button[] botonesGenerados = itemParent.GetComponentsInChildren<Button>();
             for (int j = 0; j < botonesGenerados.Length; j++)
             {
                 UnityEngine.UI.Navigation nav = new UnityEngine.UI.Navigation();
                 nav.mode = UnityEngine.UI.Navigation.Mode.Explicit;
 
-                if (j > 0)
-                    nav.selectOnUp = botonesGenerados[j - 1];
-
-                if (j < botonesGenerados.Length - 1)
-                    nav.selectOnDown = botonesGenerados[j + 1];
+                if (j > 0) nav.selectOnUp = botonesGenerados[j - 1];
+                if (j < botonesGenerados.Length - 1) nav.selectOnDown = botonesGenerados[j + 1];
 
                 botonesGenerados[j].navigation = nav;
             }
-            // -----------------------------------------------------------------
 
             selectedText.text = dropdownItems[selectedItemIndex].itemName;
             selectedImage.sprite = dropdownItems[selectedItemIndex].itemIcon;
@@ -195,13 +184,7 @@ namespace Michsky.UI.Dark
                 dropdownAnimator.Play("Dropdown In");
                 isOn = true;
 
-                if (isListItem == true)
-                {
-                    siblingIndex = transform.GetSiblingIndex();
-                    gameObject.transform.SetParent(listParent, true);
-                }
-
-                // --- NUEVO: Pasar el foco a la lista con un retraso ---
+                // --- ELIMINADO EL CÓDIGO TÓXICO DE "isListItem" ---
                 StartCoroutine(FocusDropdownItem());
             }
             else if (isOn == true)
@@ -209,29 +192,36 @@ namespace Michsky.UI.Dark
                 dropdownAnimator.Play("Dropdown Out");
                 isOn = false;
 
-                if (isListItem == true)
-                {
-                    gameObject.transform.SetParent(currentListParent, true);
-                    gameObject.transform.SetSiblingIndex(siblingIndex);
-                }
-
-                // --- NUEVO: Devolver el foco al botón principal (Trigger) al cerrar ---
-                if (triggerObject != null)
-                {
-                    UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(triggerObject);
-                }
+                // --- ELIMINADO EL CÓDIGO TÓXICO DE "isListItem" ---
+                StartCoroutine(FocusTriggerDelayed());
             }
+        }
 
-            if (enableTrigger == true && isOn == false)
-                triggerObject.SetActive(false);
-            else if (enableTrigger == true && isOn == true)
-                triggerObject.SetActive(true);
-
+        public void OnPointerExit(PointerEventData eventData)
+        {
             if (outOnPointerExit == true)
-                triggerObject.SetActive(false);
+            {
+                if (isOn == true)
+                {
+                    Animate();
+                    isOn = false;
+                }
+                // --- ELIMINADO EL CÓDIGO TÓXICO DE "isListItem" ---
+            }
+        }
+        // --- NUEVO: Corutina para asegurar que el joystick no se pierda ---
+        // --- NUEVO: Corutina con un tiempo de espera más seguro ---
+        // --- CORRECCIÓN DEFINITIVA DE NAVEGACIÓN ---
+        private IEnumerator FocusTriggerDelayed()
+        {
+            // Le damos 0.15 segundos a Unity para que destruya la lista tranquilamente
+            yield return new WaitForSeconds(0.15f);
 
-            if (setHighPriorty == true)
-                transform.SetAsLastSibling();
+            // Limpiamos la basura del EventSystem
+            UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(null);
+
+            // ¡LE DAMOS EL FOCO AL PROPIO BOTÓN DEL DROPDOWN, NO AL TRIGGER INVISIBLE!
+            UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(this.gameObject);
         }
 
         // --- NUEVA CORUTINA PARA EL JOYSTICK ---
@@ -245,20 +235,7 @@ namespace Michsky.UI.Dark
             }
         }
 
-        public void OnPointerExit(PointerEventData eventData)
-        {
-            if (outOnPointerExit == true)
-            {
-                if (isOn == true)
-                {
-                    Animate();
-                    isOn = false;
-                }
-
-                if (isListItem == true)
-                    gameObject.transform.SetParent(currentListParent, true);
-            }
-        }
+       
 
         public void UpdateValues()
         {

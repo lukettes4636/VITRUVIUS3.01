@@ -39,6 +39,10 @@ public class FallenDoor : InteractiveObject
     [Tooltip("Sonido de esfuerzo (Loop/Grito) para PLAYER 2 (Mujer)")]
     [SerializeField] private AudioClip effortVoiceP2;
 
+    [Header("Audio Mixer Setup")]
+    [Tooltip("Arrastra aquí el grupo SFX de tu Audio Mixer. Todos los sonidos de esta puerta irán aquí.")]
+    public UnityEngine.Audio.AudioMixerGroup targetMixerGroup; // <-- LA NUEVA VARIABLE
+
     private AudioSource audioSource;      
     private AudioSource voiceAudioSource; 
 
@@ -91,7 +95,7 @@ public class FallenDoor : InteractiveObject
             SetOutlineState(Color.black, 0.0f);
         }
 
-        
+        // --- AUDIO SOURCE MECÁNICO ---
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
         {
@@ -100,11 +104,19 @@ public class FallenDoor : InteractiveObject
         }
         audioSource.rolloffMode = AudioRolloffMode.Linear;
 
-        
+        // Asignamos el grupo del mixer al sonido mecánico
+        if (targetMixerGroup != null)
+            audioSource.outputAudioMixerGroup = targetMixerGroup;
+
+        // --- AUDIO SOURCE DE VOCES ---
         voiceAudioSource = gameObject.AddComponent<AudioSource>();
         voiceAudioSource.playOnAwake = false;
         voiceAudioSource.spatialBlend = 1f;
-        voiceAudioSource.rolloffMode = AudioRolloffMode.Linear; 
+        voiceAudioSource.rolloffMode = AudioRolloffMode.Linear;
+
+        // Asignamos el MISMO grupo del mixer a la voz
+        if (targetMixerGroup != null)
+            voiceAudioSource.outputAudioMixerGroup = targetMixerGroup;
 
         if (promptCanvas != null) promptCanvas.enabled = false;
     }

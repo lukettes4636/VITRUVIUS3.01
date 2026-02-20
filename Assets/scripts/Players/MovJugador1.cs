@@ -73,6 +73,9 @@ public class MovJugador1 : MonoBehaviour
     [Tooltip("Offset vertical de la esfera respecto al jugador")]
     [SerializeField] private Vector3 sphereOffset = new Vector3(0, 1f, 0);
 
+    [Header("Flashlight Animation")]
+    private FlashlightController_Enhanced flashlightController;
+
     [Header("Inventory Settings")]
     [SerializeField] private GameObject inventoryCanvas;
     [SerializeField] private InputActionReference inventoryAction;
@@ -237,6 +240,7 @@ public class MovJugador1 : MonoBehaviour
         {
             gamepad = playerInput.devices[0] as Gamepad;
         }
+        flashlightController = GetComponentInChildren<FlashlightController_Enhanced>();
     }
 
     private void InitializeStamina()

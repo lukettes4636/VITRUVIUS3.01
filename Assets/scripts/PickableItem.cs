@@ -148,6 +148,7 @@ public class PickableItem : MonoBehaviour
     public void Collect(GameObject collector)
     {
         if (isCollected) return;
+
         PlayerIdentifier collectorIdentifier = collector.GetComponent<PlayerIdentifier>();
         if (collectorIdentifier != null)
         {
@@ -164,8 +165,16 @@ public class PickableItem : MonoBehaviour
             added = inventory.AddItem(itemID);
 
         if (!added) return;
-        isCollected = true;
 
+        // 1. Marcamos como recolectado y ordenamos la destrucción INMEDIATAMENTE
+        isCollected = true;
+        Destroy(gameObject); // Unity lo destruye al final del frame, pero ya nos aseguramos de que muera.
+
+        // 2. Ocultamos el objeto y la UI al instante para que se sienta rápido (opcional pero recomendado)
+        if (meshRenderer != null) meshRenderer.enabled = false;
+        if (promptCanvas != null) promptCanvas.enabled = false;
+
+        // 3. Mostramos UI del jugador
         PlayerUIController uiController = collector.GetComponent<PlayerUIController>();
         if (uiController != null)
         {
@@ -173,21 +182,27 @@ public class PickableItem : MonoBehaviour
             uiController.ShowNotification(message);
         }
 
-        DialogueManager.ShowItemCollectionDialogue(collector, itemID, itemType == ItemType.KeyCard);
+        // 4. Protegemos el DialogueManager con un try/catch por si tira algún error interno
+        try
+        {
+            DialogueManager.ShowItemCollectionDialogue(collector, itemID, itemType == ItemType.KeyCard);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning("[PickableItem] Error al llamar al DialogueManager: " + e.Message);
+        }
 
+        // 5. Instanciamos partículas (la posición sigue existiendo en este frame aunque se vaya a destruir)
         if (collectEffect != null)
             Instantiate(collectEffect, transform.position, transform.rotation);
-        if (collectSound != null)
-            AudioManager.Instance.PlaySFX(collectSound, transform.position, 0.7f, Random.Range(0.9f, 1.1f));
 
-        SetOutlineState(originalOutlineColor, 0f);
-        hoveringPlayers.Clear();
-        if (promptCanvas != null)
+        // 6. Protegemos el AudioManager asegurándonos de que la Instancia exista
+        if (collectSound != null && AudioManager.Instance != null)
         {
-            promptCanvas.enabled = false;
-            if (promptButtonImage != null) promptButtonImage.gameObject.SetActive(false);
+            AudioManager.Instance.PlaySFX(collectSound, transform.position, 0.7f, Random.Range(0.9f, 1.1f));
         }
-        Destroy(gameObject);
+
+        hoveringPlayers.Clear();
     }
 
     private void UpdatePromptVisualsInternal()

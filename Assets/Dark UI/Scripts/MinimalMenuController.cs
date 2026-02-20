@@ -107,8 +107,12 @@ namespace Michsky.UI.Dark
             SetupQualityDropdown();
             SetupResolutionDropdown();
             BindAudioSliders();
-            LoadPrefs();
+            
             WireMenuButtons();
+        }
+        void Start()
+        {
+            LoadPrefs();
         }
         // ═══════════════════════════════════════════════════════════════
         //  INPUT UPDATE — CERRAR CON BOTÓN B (CANCEL)
@@ -332,27 +336,21 @@ namespace Michsky.UI.Dark
         }
 
         // ═══════════════════════════════════════════════════════════════
-        //  AUDIO SETTERS — Con Corte a Silencio Total (-80dB)
+        //  AUDIO SETTERS — Con Corte a Silencio Total, Clamp y Guardado Forzado
         // ═══════════════════════════════════════════════════════════════
         public void SetMasterVolume(float v)
         {
             PlayerPrefs.SetFloat("MasterVolume", v);
+            PlayerPrefs.Save(); // Obliga a Unity a guardar en disco YA MISMO
 
             if (audioMixer != null)
             {
-                // Si el valor es muy bajo (casi 0), silenciamos totalmente a -80dB
-                if (v <= 0.001f)
-                {
-                    audioMixer.SetFloat("Master", -80f);
-                }
-                else
-                {
-                    audioMixer.SetFloat("Master", Mathf.Log10(v) * 20f);
-                }
+                // El Clamp asegura que el valor jamás se salga del rango matemático
+                float dB = v <= 0.001f ? -80f : Mathf.Log10(Mathf.Clamp(v, 0.0001f, 1f)) * 20f;
+                audioMixer.SetFloat("Master", dB);
             }
             else
             {
-                // Fallback si no hay mixer (AudioListener usa escala lineal 0-1)
                 AudioListener.volume = v <= 0.001f ? 0f : v;
             }
         }
@@ -360,54 +358,49 @@ namespace Michsky.UI.Dark
         public void SetMusicVolume(float v)
         {
             PlayerPrefs.SetFloat("MusicVolume", v);
+            PlayerPrefs.Save();
 
             if (audioMixer != null)
             {
-                if (v <= 0.001f)
-                {
-                    audioMixer.SetFloat("Music", -80f);
-                }
-                else
-                {
-                    audioMixer.SetFloat("Music", Mathf.Log10(v) * 20f);
-                }
+                float dB = v <= 0.001f ? -80f : Mathf.Log10(Mathf.Clamp(v, 0.0001f, 1f)) * 20f;
+                audioMixer.SetFloat("Music", dB);
             }
         }
 
         public void SetSFXVolume(float v)
         {
             PlayerPrefs.SetFloat("SFXVolume", v);
+            PlayerPrefs.Save();
 
             if (audioMixer != null)
             {
-                if (v <= 0.001f)
-                {
-                    audioMixer.SetFloat("SFX", -80f);
-                }
-                else
-                {
-                    audioMixer.SetFloat("SFX", Mathf.Log10(v) * 20f);
-                }
+                float dB = v <= 0.001f ? -80f : Mathf.Log10(Mathf.Clamp(v, 0.0001f, 1f)) * 20f;
+                audioMixer.SetFloat("SFX", dB);
             }
         }
 
         // ═══════════════════════════════════════════════════════════════
-        //  BRILLO — URP Post-Processing (ColorAdjustments.postExposure)
-        //  El slider debe configurarse con los valores negativos/positivos
-        //  que correspondan al rango deseado, ej. Min: -2  Max: 2.
+        //  BRILLO — URP Post-Processing con Override Forzado
         // ═══════════════════════════════════════════════════════════════
         public void SetBrightness(float v)
         {
             PlayerPrefs.SetFloat("Brightness", v);
+            PlayerPrefs.Save(); // Guardado instantáneo
 
-            // Si el componente no estaba cacheado en Awake, intentar obtenerlo ahora
+            // Si el componente no estaba cacheado, buscarlo ahora
             if (colorAdjustments == null && globalVolume != null && globalVolume.profile != null)
                 globalVolume.profile.TryGet(out colorAdjustments);
 
             if (colorAdjustments != null)
+            {
+                // ¡ESTA ES LA LÍNEA MÁGICA! Obliga a URP a sobreescribir el brillo en tiempo real
+                colorAdjustments.postExposure.overrideState = true;
                 colorAdjustments.postExposure.value = v;
+            }
             else
+            {
                 Debug.LogWarning("[MinimalMenuController] ColorAdjustments no encontrado en el globalVolume.");
+            }
         }
 
         // ═══════════════════════════════════════════════════════════════
@@ -453,6 +446,7 @@ namespace Michsky.UI.Dark
         /// </summary>
         public void OpenSettingsMenu()
         {
+            SetMainMenuInteractable(false);
             if (settingsCanvasGroup == null) return;
 
             if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
@@ -490,6 +484,7 @@ namespace Michsky.UI.Dark
                     duration: fadeDuration,
                     onComplete: () =>
                     {
+                        SetMainMenuInteractable(true);
                         // Desactivar interacción sólo cuando el panel ya es invisible
                         settingsCanvasGroup.interactable = false;
                         settingsCanvasGroup.blocksRaycasts = false;
@@ -571,6 +566,18 @@ namespace Michsky.UI.Dark
             if (mainPanelManager == null) return;
             mainPanelManager.PanelAnim(GetCreditsIndex());
         }
+        // --- NUEVO MÉTODO PARA BLOQUEAR EL MENÚ TRASERO ---
+        void SetMainMenuInteractable(bool state)
+        {
+            if (mainMenuButtonsRoot != null)
+            {
+                CanvasGroup cg = mainMenuButtonsRoot.GetComponent<CanvasGroup>();
+                if (cg == null) cg = mainMenuButtonsRoot.gameObject.AddComponent<CanvasGroup>();
+
+                cg.interactable = state;
+                cg.blocksRaycasts = state;
+            }
+        }
 
         // ═══════════════════════════════════════════════════════════════
         //  CARGA DE ESCENA
@@ -579,24 +586,23 @@ namespace Michsky.UI.Dark
         {
             if (string.IsNullOrEmpty(startSceneName)) return;
 
-            bool sceneInBuild = false;
-            int count = SceneManager.sceneCountInBuildSettings;
+            // Iniciamos la corutina de carga
+            StartCoroutine(FadeAndLoadRoutine());
+        }
 
-            for (int i = 0; i < count; i++)
+        private IEnumerator FadeAndLoadRoutine()
+        {
+            // 1. Bloqueamos los botones para que el jugador no haga doble clic
+            SetMainMenuInteractable(false);
+
+            // 2. Llamamos a tu SceneFadeController y esperamos a que termine
+            if (SceneFadeController.Instance != null)
             {
-                string path = SceneUtility.GetScenePathByBuildIndex(i);
-                string sName = System.IO.Path.GetFileNameWithoutExtension(path);
-                if (sName == startSceneName)
-                {
-                    sceneInBuild = true;
-                    break;
-                }
+                yield return StartCoroutine(SceneFadeController.Instance.FadeOut());
             }
 
-            if (sceneInBuild)
-                SceneManager.LoadScene(startSceneName);
-            else
-                Debug.LogError($"[MinimalMenuController] Scene '{startSceneName}' no encontrada en Build Settings.");
+            // 3. Cargamos la escena cuando la pantalla ya está negra
+            SceneManager.LoadScene(startSceneName);
         }
 
         // ═══════════════════════════════════════════════════════════════

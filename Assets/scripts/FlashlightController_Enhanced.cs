@@ -21,7 +21,10 @@ public class FlashlightController_Enhanced : MonoBehaviour
     [Header("Flashlight Settings")]
     public Light flashlight;
     public float rotationSpeed = 100f;
-    
+
+    [Header("Inventory Check")]
+    private PlayerInventory playerInventory;
+
     public Behaviour volumetricBeam;
 
     [Header("Input Settings")]
@@ -113,6 +116,12 @@ public class FlashlightController_Enhanced : MonoBehaviour
 
     void Start()
     {
+        playerInventory = GetComponentInParent<PlayerInventory>();
+        if (playerInventory == null)
+        {
+            playerInventory = transform.root.GetComponentInChildren<PlayerInventory>();
+        }
+
         if (autoFindAnimator && flashlightAnimator == null)
         {
             FindAndSetupAnimator();
@@ -229,6 +238,13 @@ public class FlashlightController_Enhanced : MonoBehaviour
 
     void OnToggleFlashlight(InputAction.CallbackContext context)
     {
+       
+        if (playerInventory != null && !playerInventory.HasItem("Flashlight"))
+        {
+            return;
+        }
+       
+
         if (context.performed && !isAnimating)
         {
             pendingLightActivation = true;
