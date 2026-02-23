@@ -6,56 +6,59 @@ public class DynamicAtmosphere : MonoBehaviour
     [Tooltip("Arrastrá aquí el Material MAT_TerrorLens que creaste")]
     public Material terrorLensMat;
 
-    [Tooltip("El nombre exacto de la referencia en el Shader Graph (suele ser _DangerLevel)")]
+    [Tooltip("El nombre exacto de la referencia en el Shader Graph")]
     public string dangerProperty = "_DangerLevel";
 
     [Header("Ajustes de la Zona")]
-    [Tooltip("Nombre del Tag que tendrá la caja invisible")]
-    public string zoneTag = "DangerZone";
-
     [Tooltip("Qué tan rápido cambia el color (Más alto = más rápido)")]
     public float transitionSpeed = 2f;
 
+    [Header("Detección")]
+    public string player1Tag = "Player1";
+    public string player2Tag = "Player2";
+
     // Variables internas para la animación
-    private float targetLevel = 0f; // 0 = Normal, 1 = Terror
+    private int playersInside = 0; // Cuenta cuántos jugadores están pisando la zona
     private float currentLevel = 0f;
 
     void Update()
     {
-        // Si no asignaste el material, no hacemos nada para evitar errores
         if (terrorLensMat == null) return;
 
-        // Interpolación suave (Lerp): Movemos el valor actual hacia el objetivo
-        currentLevel = Mathf.Lerp(currentLevel, targetLevel, Time.deltaTime * transitionSpeed);
+        // Si hay al menos 1 jugador adentro, el objetivo es 1 (Terror). Si no, es 0 (Normal).
+        float targetLevel = (playersInside > 0) ? 1f : 0f;
 
-        // Le mandamos el número al Shader
+        // Interpolación suave
+        currentLevel = Mathf.Lerp(currentLevel, targetLevel, Time.deltaTime * transitionSpeed);
         terrorLensMat.SetFloat(dangerProperty, currentLevel);
     }
 
     // --- DETECCIÓN DE ZONAS ---
 
-    // Cuando entramos a la caja
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag(zoneTag))
+        // Si entra cualquier jugador, sumamos 1 a la cuenta
+        if (other.CompareTag(player1Tag) || other.CompareTag(player2Tag))
         {
-            targetLevel = 1f; // Objetivo: Activar modo terror (100%)
+            playersInside++;
         }
     }
 
-    // Cuando salimos de la caja
     void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag(zoneTag))
+        // Si sale un jugador, restamos 1 de la cuenta
+        if (other.CompareTag(player1Tag) || other.CompareTag(player2Tag))
         {
-            targetLevel = 0f; // Objetivo: Volver a modo normal (0%)
+            playersInside--;
+
+            // Por seguridad, evitamos que el contador baje de cero
+            if (playersInside < 0) playersInside = 0;
         }
     }
 
-    // IMPORTANTE: Esto resetea el efecto al cerrar el juego.
-    // Si no ponés esto, el editor de Unity se queda rojo para siempre.
     void OnApplicationQuit()
     {
+        // Reseteo de seguridad al cerrar el juego
         if (terrorLensMat != null)
         {
             terrorLensMat.SetFloat(dangerProperty, 0f);
