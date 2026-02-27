@@ -17,10 +17,10 @@ MonoBehaviour:
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: 287
-    y: -190
-    width: 1078
-    height: 2239
+    x: 311
+    y: -93
+    width: 1647
+    height: 936
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -602,7 +602,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661614832}
-  m_UIPosition: {x: 939, y: 815}
+  m_UIPosition: {x: 1534, y: 61}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -639,7 +639,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661614838}
   - {fileID: 8926484042661614589}
-  m_UIPosition: {x: 939, y: 1014}
+  m_UIPosition: {x: 1534, y: 260}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -1279,7 +1279,7 @@ MonoBehaviour:
       inputSlot: {fileID: 8926484042661614696}
     - outputSlot: {fileID: 8926484042661614634}
       inputSlot: {fileID: 8926484042661614697}
-    position: {x: 287, y: 463}
+    position: {x: 311, y: 468}
     expandedSlots: []
     expanded: 0
 --- !u!114 &8926484042661614634
@@ -2229,7 +2229,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 473, y: 394}
+  m_UIPosition: {x: 487, y: 396}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3125,7 +3125,7 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661614784}
       inputSlot: {fileID: 8926484042661614834}
-    position: {x: 762, y: 955}
+    position: {x: 1357, y: 201}
     expandedSlots: []
     expanded: 0
 --- !u!114 &8926484042661614784
@@ -3475,7 +3475,7 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661614837}
       inputSlot: {fileID: 8926484042661614833}
-    position: {x: 754, y: 916}
+    position: {x: 1349, y: 162}
     expandedSlots: []
     expanded: 0
 --- !u!114 &8926484042661614837
@@ -3863,7 +3863,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 748, y: 414}
+  m_UIPosition: {x: 762, y: 416}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
