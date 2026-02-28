@@ -9,6 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1360124526476475615}
+  - component: {fileID: 5970246145554281444}
+  - component: {fileID: 7145286063556167341}
   m_Layer: 0
   m_Name: endemo
   m_TagString: Untagged
@@ -31,3 +33,42 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5970246145554281444
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7895517679730912235}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 417bf1dfcb64bcb4d91deca1c17cdf8f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerTags:
+  - Player1
+  - Player2
+  - Player
+  hideOnTrigger: 1
+  disableColliderOnTrigger: 1
+--- !u!65 &7145286063556167341
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7895517679730912235}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 9.176823, y: 29.053663, z: 16.514244}
+  m_Center: {x: 4.8691406, y: 14.026832, z: 3.0967827}

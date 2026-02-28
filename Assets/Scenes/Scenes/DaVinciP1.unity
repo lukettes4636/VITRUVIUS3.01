@@ -88322,6 +88322,10 @@ MonoBehaviour:
   ActionName: Action Button
   ThrowActionName: Throw Action Button
   GrabRadius: 2
+  PickupCooldown: 0.3
+  ObstacleLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
   HoldOffset: {x: 0.5, y: 0.8, z: 0.7}
   HoldRotation: {x: 0, y: 0, z: 0}
   CrouchHoldOffset: {x: 0.5, y: 0.45, z: 0.7}
@@ -97655,6 +97659,10 @@ MonoBehaviour:
   ActionName: Action button
   ThrowActionName: Throw Action Button
   GrabRadius: 2
+  PickupCooldown: 0.3
+  ObstacleLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
   HoldOffset: {x: 0.5, y: 0.8, z: 0.7}
   HoldRotation: {x: 0, y: 0, z: 0}
   CrouchHoldOffset: {x: 0.5, y: 0.45, z: 0.7}
@@ -117142,7 +117150,6 @@ MonoBehaviour:
   - {fileID: 229616914}
   spawnPoints:
   - {fileID: 1404360343}
-  logRespawnDebug: 0
 --- !u!82 &499725255
 AudioSource:
   m_ObjectHideFlags: 0
@@ -253181,13 +253188,6 @@ MonoBehaviour:
   initialState: 1
   crawlSpeed: 1.2
   walkSpeed: 2.5
-  investigationSpeed: 1.8
-  attackRange: 2.2
-  attackCooldown: 0.5
-  attackDamage: 25
-  detectionRange: 2.5
-  postAttackFocusTime: 1.5
-  attackApproachStoppingDistance: 0.75
   patrolPoints: []
   patrolWaitTime: 2
   investigationDuration: 3
@@ -253219,16 +253219,6 @@ MonoBehaviour:
   roarMaterial: {fileID: 2100000, guid: a0187bd7047a95e4d80490fe62b50304, type: 2}
   maxRoarDistortion: 0.03
   animationDampTime: 5
-  headAimRig: {fileID: 0}
-  lookTarget: {fileID: 0}
-  headBone: {fileID: 0}
-  scanWidth: 1.5
-  scanSpeed: 2
-  crawlScanWidth: 0.8
-  crawlScanSpeed: 1.5
-  verticalScanAmplitude: 0.2
-  lookTargetDistance: 1.2
-  investigateRigBlendSpeed: 2
 --- !u!114 &1144296834
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -253283,23 +253273,10 @@ MonoBehaviour:
   npcTargets:
   - {fileID: 1461265015}
   objectNoiseDetection: {fileID: 0}
-  audioSensitivity: 1
-  maxHearingDistance: 20
-  minDetectionRadius: 1.5
-  detectionThreshold: 0.2
-  proximityDetectionRadius: 3.5
-  closeRangeBoost: 2
-  soundBlockerLayer:
-    serializedVersion: 2
-    m_Bits: 0
-  soundAttenuationPerWall: 0.7
-  memoryDuration: 3
-  destructibleWallLayer:
-    serializedVersion: 2
-    m_Bits: 8192
-  wallDetectionDistance: 3
-  wallDetectionRadius: 0.5
-  frontWallCheckDistance: 2.5
+  detectionRange: 10
+  ultraCloseRange: 2
+  minNoiseToDetect: 0.1
+  objectNoiseThreshold: 2
 --- !u!114 &1144296837
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -302371,50 +302348,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4843550868866881110, guid: dc80c00850234754a9cdbf62e2d79dc8, type: 3}
   m_PrefabInstance: {fileID: 15370190}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1374049086 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7895517679730912235, guid: d08d04d6d20d92f479d191dba46da2e8, type: 3}
-  m_PrefabInstance: {fileID: 5299583914991419090}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1374049088
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1374049086}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 417bf1dfcb64bcb4d91deca1c17cdf8f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  playerTags:
-  - Player1
-  - Player2
-  - Player
-  hideOnTrigger: 1
-  disableColliderOnTrigger: 1
---- !u!65 &1374049089
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1374049086}
-  m_Material: {fileID: 412414836}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 9.176823, y: 29.053663, z: 16.514244}
-  m_Center: {x: 4.8691406, y: 14.026832, z: 3.0967827}
 --- !u!4 &1374841402 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4843550868866881110, guid: dc80c00850234754a9cdbf62e2d79dc8, type: 3}
@@ -414087,6 +414020,10 @@ MonoBehaviour:
   ActionName: Action Button
   ThrowActionName: Throw Action Button
   GrabRadius: 2
+  PickupCooldown: 0.3
+  ObstacleLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
   HoldOffset: {x: 0.5, y: 0.8, z: 0.7}
   HoldRotation: {x: 0, y: 0, z: 0}
   CrouchHoldOffset: {x: 0.5, y: 0.45, z: 0.7}
@@ -467150,6 +467087,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7145286063556167341, guid: d08d04d6d20d92f479d191dba46da2e8, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 412414836}
     - target: {fileID: 7895517679730912235, guid: d08d04d6d20d92f479d191dba46da2e8, type: 3}
       propertyPath: m_Name
       value: endemo
@@ -467157,13 +467098,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 7895517679730912235, guid: d08d04d6d20d92f479d191dba46da2e8, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1374049088}
-    - targetCorrespondingSourceObject: {fileID: 7895517679730912235, guid: d08d04d6d20d92f479d191dba46da2e8, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1374049089}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d08d04d6d20d92f479d191dba46da2e8, type: 3}
 --- !u!1001 &5451915676652921596
 PrefabInstance:
