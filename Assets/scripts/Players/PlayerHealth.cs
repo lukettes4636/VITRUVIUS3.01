@@ -133,8 +133,12 @@ public class PlayerHealth : MonoBehaviour
 
         UpdateUI();
 
+        // FIX #1: Enable the action BEFORE subscribing to avoid Input System silent failures.
         if (submitAction != null && submitAction.action != null)
+        {
+            submitAction.action.Enable();
             submitAction.action.performed += OnRespawnInput;
+        }
 
         Checkpoint.OnCheckpointReached += HandleCheckpointReached;
 
@@ -416,10 +420,20 @@ public class PlayerHealth : MonoBehaviour
         canRespawn = true;
     }
 
+    // FIX #2: Use CheckpointSystem instead of the old GameManager.
     private void RequestRespawn()
     {
-        if (playerIdentifier != null && GameManager.Instance != null)
-            GameManager.Instance.RespawnPlayer(playerIdentifier.playerID);
+        if (CheckpointSystem.Instance != null && CheckpointSystem.Instance.HasCheckpoint())
+        {
+            CheckpointSystem.Instance.LoadLastCheckpoint();
+        }
+        else
+        {
+            // No checkpoint saved yet: do a local in-place restore so the player
+            // is not permanently stuck on the death screen.
+            Debug.LogWarning($"[PlayerHealth] No checkpoint available for player {playerIdentifier?.playerID}. Performing in-place restore.");
+            RestoreState();
+        }
     }
 
     public void RestoreState()
