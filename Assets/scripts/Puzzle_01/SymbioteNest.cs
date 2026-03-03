@@ -1,12 +1,12 @@
 using UnityEngine;
 using UnityEngine.VFX;
-using System.Collections.Generic; // Necesario para usar Listas
+using System.Collections.Generic;
 
 public class SymbioteNest : MonoBehaviour
 {
     [Header("Configuración Visual")]
-    [Tooltip("El material de la pared (Mesh Renderer)")]
-    public Material wallMaterial;
+    [Tooltip("El MeshRenderer de esta pared (NO el material)")]
+    public Renderer wallRenderer; // <-- CAMBIO 1: Ahora pedimos el Renderer
     [Tooltip("El componente VFX Graph hijo")]
     public VisualEffect tentacleVFX;
 
@@ -19,60 +19,62 @@ public class SymbioteNest : MonoBehaviour
     public float attackDistance = 2.0f;     // Máxima intensidad
 
     // Nombres internos del Shader y VFX (Reference Names)
-    private string shaderThreatParam = "_ThreatLevel";
+    private int shaderThreatParamID; // <-- CAMBIO 2: Usamos ID para mejor rendimiento
     private string vfxSpawnParam = "SpawnRate";
     private string vfxTargetParam = "TargetPosition";
 
+    private MaterialPropertyBlock propBlock; // <-- CAMBIO 3: Para independizar cada pared
+
+    void Start()
+    {
+        // Inicializamos el bloque de propiedades y el ID del shader
+        propBlock = new MaterialPropertyBlock();
+        shaderThreatParamID = Shader.PropertyToID("_ThreatLevel");
+
+        // Si se te olvidó asignarlo en el Inspector, lo busca automáticamente
+        if (wallRenderer == null)
+        {
+            wallRenderer = GetComponent<Renderer>();
+        }
+    }
+
     void Update()
     {
-        // 1. Encontrar al objetivo más cercano
         Transform closestTarget = GetClosestTarget(out float minDistance);
 
-        // Si no hay nadie vivo o asignado, apagamos todo
         if (closestTarget == null)
         {
             ResetEffects();
             return;
         }
 
-        // 2. Calcular Nivel de Amenaza (0 a 1) basado en el más cercano
-        // Mathf.InverseLerp devuelve 0 si estamos lejos y 1 si estamos cerca
         float threat = Mathf.InverseLerp(activationDistance, attackDistance, minDistance);
 
-        // 3. Controlar SHADER (Pared)
-        if (wallMaterial != null)
+        // 3. Controlar SHADER de forma independiente usando PropertyBlock
+        if (wallRenderer != null)
         {
-            wallMaterial.SetFloat(shaderThreatParam, threat);
+            wallRenderer.GetPropertyBlock(propBlock);
+            propBlock.SetFloat(shaderThreatParamID, threat);
+            wallRenderer.SetPropertyBlock(propBlock);
         }
 
         // 4. Controlar VFX (Tentáculos)
         if (tentacleVFX != null)
         {
-            // Los tentáculos apuntan al que esté más cerca
             tentacleVFX.SetVector3(vfxTargetParam, closestTarget.position);
-
-            if (threat > 0.05f)
-            {
-                // Multiplicamos por 150 para que salgan muchos gusanos
-                tentacleVFX.SetFloat(vfxSpawnParam, threat * 50f);
-            }
-            else
-            {
-                tentacleVFX.SetFloat(vfxSpawnParam, 0f);
-            }
+            tentacleVFX.SetFloat(vfxSpawnParam, threat > 0.05f ? threat * 50f : 0f);
         }
     }
 
-    // Función auxiliar para buscar el más cercano
     private Transform GetClosestTarget(out float distance)
     {
         Transform bestTarget = null;
-        float closestDistSqr = Mathf.Infinity; // Usamos distancia al cuadrado (es más rápido)
+        float closestDistSqr = Mathf.Infinity;
         Vector3 currentPos = transform.position;
 
         foreach (Transform potentialTarget in possibleTargets)
         {
-            if (potentialTarget == null) continue; // Si el NPC murió o se destruyó, lo ignoramos
+            if (potentialTarget == null) continue;
 
             Vector3 directionToTarget = potentialTarget.position - currentPos;
             float dSqrToTarget = directionToTarget.sqrMagnitude;
@@ -84,18 +86,21 @@ public class SymbioteNest : MonoBehaviour
             }
         }
 
-        // Devolvemos la distancia real (raíz cuadrada) para los cálculos de amenaza
         distance = Mathf.Sqrt(closestDistSqr);
         return bestTarget;
     }
 
     private void ResetEffects()
     {
-        if (wallMaterial != null) wallMaterial.SetFloat(shaderThreatParam, 0);
+        if (wallRenderer != null)
+        {
+            wallRenderer.GetPropertyBlock(propBlock);
+            propBlock.SetFloat(shaderThreatParamID, 0);
+            wallRenderer.SetPropertyBlock(propBlock);
+        }
         if (tentacleVFX != null) tentacleVFX.SetFloat(vfxSpawnParam, 0);
     }
 
-    // Dibujos de ayuda en el Editor
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
