@@ -204,9 +204,9 @@ public class FallenDoor : InteractiveObject
         }
     }
 
-    
 
-    
+
+
     public void StartLifting(MovJugador1 lifter)
     {
         isBeingLifted = true;
@@ -216,23 +216,24 @@ public class FallenDoor : InteractiveObject
         hasDropped = false;
         isDropping = false;
 
-        
+        // Sonido mecánico de la puerta
         if (liftSound != null && audioSource != null)
         {
             audioSource.clip = liftSound;
-            audioSource.loop = true;
+            audioSource.loop = false; // <-- CAMBIADO A FALSE
             audioSource.Play();
         }
-        
+
+        // Sonido de la voz (P1)
         if (effortVoiceP1 != null && voiceAudioSource != null)
         {
             voiceAudioSource.clip = effortVoiceP1;
-            voiceAudioSource.loop = true;
+            voiceAudioSource.loop = false; // <-- CAMBIADO A FALSE
             voiceAudioSource.Play();
         }
     }
 
-    
+
     public void StartFailLifting(MovJugador2 failler)
     {
         if (isBeingLifted) return;
@@ -244,24 +245,24 @@ public class FallenDoor : InteractiveObject
         isDropping = false;
         failDialogueShown = false;
 
-        
+        // Sonido mecánico de la puerta
         if (liftSound != null && audioSource != null)
         {
             audioSource.clip = liftSound;
-            audioSource.loop = true;
+            audioSource.loop = false; // <-- CAMBIADO A FALSE
             audioSource.Play();
         }
-        
+
+        // Sonido de la voz (P2)
         if (effortVoiceP2 != null && voiceAudioSource != null)
         {
             voiceAudioSource.clip = effortVoiceP2;
-            voiceAudioSource.loop = true;
+            voiceAudioSource.loop = false; // <-- CAMBIADO A FALSE
             voiceAudioSource.Play();
         }
-
     }
 
-    
+
     public void StopLifting()
     {
         if (isDropping) return;
